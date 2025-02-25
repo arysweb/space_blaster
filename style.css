@@ -1,0 +1,120 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: black;
+    overflow: hidden;
+    font-family: 'Press Start 2P', cursive;
+    color: white;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#info-bar {
+    position: fixed;
+    top: 20px;
+    left: 0;
+    right: 0;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px;
+    font-size: 14px;
+    z-index: 2;
+}
+
+#lives {
+    display: flex;
+    align-items: center;
+}
+
+#gameOver {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    color: white;
+    text-align: center;
+}
+
+#gameOver h1 {
+    font-size: 36px;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px #ff0000;
+    animation: pulse 2s infinite;
+}
+
+#gameOver p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+#restartButton {
+    margin-top: 30px;
+    padding: 15px 30px;
+    background-color: #ff3366;
+    color: white;
+    border: none;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(255, 51, 102, 0.7);
+}
+
+#restartButton:hover {
+    background-color: #ff5588;
+    transform: scale(1.05);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Heart animations */
+@keyframes heartPulse {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+@keyframes heartFadeOut {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.5); }
+}
+
+.heart-img {
+    transition: all 0.2s ease;
+}
+
+.heart-pulse {
+    animation: heartPulse 0.6s ease-in-out;
+}
+
+.heart-fade-out {
+    animation: heartFadeOut 0.5s ease-in-out forwards;
+}
