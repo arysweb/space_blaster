@@ -12,9 +12,6 @@ class Player {
         const dx = mouseX - this.x;
         const dy = mouseY - this.y;
         this.rotation = Math.atan2(dy, dx);
-        
-        // Try to fire automatically
-        this.tryFire();
     }
     
     draw(ctx, playerImage) {
@@ -698,6 +695,11 @@ class Game {
         this.coins = 0;
         this.lives = GAME_CONFIG.PLAYER.INITIAL_LIVES;
         this.gameOver = false;
+        this.aliens = [];
+        this.bullets = [];
+        this.coinEffects = [];
+        this.clouds = [];
+        this.mysteryBoxes = [];
         this.gameStartTime = Date.now();
         
         // Reset UI
@@ -706,21 +708,12 @@ class Game {
         this.ui.updateCoins(this.coins);
         this.ui.hideGameOver();
         
-        // Reset canvas size
-        this.resizeCanvas();
-        
         // Create player in center of screen
+        this.resizeCanvas();
         this.player = new Player(
             this.canvas.width / 2,
             this.canvas.height / 2
         );
-        
-        // Reset game entities
-        this.bullets = [];
-        this.aliens = [];
-        this.mysteryBoxes = [];
-        this.clouds = [];
-        this.coinEffects = [];
         
         // Initialize mouse position to center of screen
         this.mouseX = this.canvas.width / 2;
@@ -793,7 +786,7 @@ class Game {
         
         const alien = Alien.spawn(
             this.canvas.width,
-            this.canvas.height,
+            this.canvasHeight,
             this.gameStartTime
         );
         
@@ -830,12 +823,17 @@ class Game {
     scheduleMysteryBoxSpawn() {
         if (this.gameOver) return;
         
-        // Spawn a mystery box
-        this.mysteryBoxes.push(MysteryBox.spawn(this.canvas.width, this.canvas.height));
-        
-        // Schedule next spawn
-        const nextSpawnTime = GAME_CONFIG.MYSTERY_BOX.SPAWN_INTERVAL * (0.8 + Math.random() * 0.4);
-        setTimeout(() => this.scheduleMysteryBoxSpawn(), nextSpawnTime);
+        // Add a delay before the first spawn
+        setTimeout(() => {
+            // Spawn a mystery box
+            this.mysteryBoxes.push(MysteryBox.spawn(this.canvas.width, this.canvas.height));
+            
+            // Schedule next spawn using the configured values
+            const minTime = GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_TIME;
+            const maxTime = GAME_CONFIG.MYSTERY_BOX.MAX_SPAWN_TIME;
+            const nextSpawnTime = minTime + Math.random() * (maxTime - minTime);
+            setTimeout(() => this.scheduleMysteryBoxSpawn(), nextSpawnTime);
+        }, GAME_CONFIG.MYSTERY_BOX.INITIAL_SPAWN_DELAY);
     }
     
     spawnMysteryBox() {
@@ -857,9 +855,6 @@ class Game {
             this.player.y = this.canvas.height / 2;
             this.player.update(this.mouseX, this.mouseY);
         }
-        
-        // Try to shoot automatically
-        this.tryPlayerShoot();
         
         // Update bullets
         for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -992,33 +987,6 @@ class Game {
         this.ui.showGameOver(this.score, this.coins);
     }
     
-    resetGame() {
-        this.score = 0;
-        this.coins = 0;
-        this.lives = GAME_CONFIG.PLAYER.INITIAL_LIVES;
-        this.gameOver = false;
-        this.aliens = [];
-        this.bullets = [];
-        this.coinEffects = [];
-        this.clouds = [];
-        this.mysteryBoxes = [];
-        this.gameStartTime = Date.now();
-        
-        // Restart intervals
-        clearInterval(this.alienSpawnInterval);
-        clearInterval(this.cloudSpawnInterval);
-        clearTimeout(this.mysteryBoxTimeout);
-        
-        this.startAlienSpawner();
-        this.startCloudSpawner();
-        this.scheduleMysteryBoxSpawn();
-        
-        this.ui.updateLives(this.lives);
-        this.ui.updateScore(this.score);
-        this.ui.updateCoins(this.coins);
-        this.ui.hideGameOver();
-    }
-    
     drawEntities() {
         // Draw clouds (background)
         for (const cloud of this.clouds) {
@@ -1058,6 +1026,9 @@ class Game {
         
         // Update all entities
         this.updateEntities();
+        
+        // Try to shoot automatically
+        this.tryPlayerShoot();
         
         // Check for collisions
         this.checkCollisions();

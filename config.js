@@ -51,6 +51,7 @@ const GAME_CONFIG = {
         COINS: 30,
         MIN_SPAWN_TIME: 15000, // 15 seconds
         MAX_SPAWN_TIME: 30000, // 30 seconds
+        INITIAL_SPAWN_DELAY: 10000, // 10 seconds delay before first spawn
         ROTATION_SPEED: 0.01,
         PULSE_SPEED: 0.005,
         POINTS: 50
@@ -64,7 +65,7 @@ const GAME_CONFIG = {
         HEART_Y_POSITION: 30,
         HEART_IMAGE: 'img/heart.png',
         COIN_SIZE: 20,
-        COIN_IMAGE: 'img/coin.jpg'
+        COIN_IMAGE: 'img/coin.png'
     },
     
     // UI settings
