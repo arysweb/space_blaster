@@ -7,6 +7,7 @@ class Player {
         this.lastFireTime = 0;
         this.damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE; // Player's current damage level
         this.critChance = 0; // Percentage chance to instantly kill an alien (0-100)
+        this.fireRate = 0; // Percentage increase in fire rate (0-100)
         this.isInvincible = false;
         this.invincibilityTime = 0;
         this.invincibilityDuration = 2000; // 2 seconds of invincibility after being hit
@@ -24,6 +25,7 @@ class Player {
             if (this.invincibilityTime >= this.invincibilityDuration) {
                 this.isInvincible = false;
                 this.invincibilityTime = 0;
+                console.log("Player invincibility ended");
             }
         }
     }
@@ -73,7 +75,9 @@ class Player {
     }
     
     canFire() {
-        return Date.now() - this.lastFireTime > GAME_CONFIG.PLAYER.FIRE_RATE;
+        // Calculate actual fire rate based on the player's fire rate bonus
+        const actualFireRate = GAME_CONFIG.PLAYER.FIRE_RATE * (1 - (this.fireRate / 100));
+        return Date.now() - this.lastFireTime > actualFireRate;
     }
     
     tryFire() {
@@ -109,6 +113,7 @@ class Player {
     makeInvincible() {
         this.isInvincible = true;
         this.invincibilityTime = 0;
+        console.log("Player is now invincible");
     }
 }
 

@@ -49,9 +49,9 @@ const GAME_CONFIG = {
     
     // Mystery box settings
     MYSTERY_BOX: {
-        SPAWN_INTERVAL: 15000, // 15 seconds
-        MIN_SPAWN_INTERVAL: 25000, // 25 seconds
-        MAX_SPAWN_INTERVAL: 35000, // 35 seconds
+        SPAWN_INTERVAL: 5000, // 15 seconds
+        MIN_SPAWN_INTERVAL: 5000, // 25 seconds
+        MAX_SPAWN_INTERVAL: 10000, // 35 seconds
         SIZE: 40,
         POINTS: 0,
         COINS: 5,
@@ -70,12 +70,11 @@ const GAME_CONFIG = {
         },
         POWERUPS: {
             TYPES: [
-                { TYPE: 'damage', TEXT: 'DAMAGE +1', WEIGHT: 5 },
-                { TYPE: 'coins10', TEXT: 'COINS +10', WEIGHT: 20, VALUE: 10 },
-                { TYPE: 'coins20', TEXT: 'COINS +20', WEIGHT: 15, VALUE: 20 },
-                { TYPE: 'coins30', TEXT: 'COINS +30', WEIGHT: 10, VALUE: 30 },
-                { TYPE: 'heart', TEXT: 'HEART +1', WEIGHT: 35 },
-                { TYPE: 'crit', TEXT: 'CRIT +1', WEIGHT: 5, VALUE: 2.5 }
+                { TYPE: 'damage', TEXT: 'DAMAGE +1', VALUE: 1 },
+                { TYPE: 'coins10', TEXT: 'COINS +10', VALUE: 10 },
+                { TYPE: 'heart', TEXT: 'HEART +1', VALUE: 1 },
+                { TYPE: 'crit', TEXT: 'CRIT +1', VALUE: 2.5 },
+                { TYPE: 'firerate', TEXT: 'FIRE RATE +1', VALUE: 10 }
             ],
             EXPLOSION_IMAGE: 'img/enemy_defeted.png'
         }

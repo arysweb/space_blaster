@@ -139,6 +139,8 @@ class GameUI {
         this.scoreElement = document.getElementById('score');
         this.coinsElement = document.getElementById('coins');
         this.critElement = document.getElementById('crit');
+        this.damageElement = document.getElementById('damage');
+        this.fireRateElement = document.getElementById('fire-rate');
         this.livesElement = document.getElementById('lives');
         this.gameOverElement = document.getElementById('gameOver');
         this.finalScoreElement = document.getElementById('finalScore');
@@ -147,15 +149,88 @@ class GameUI {
     }
     
     updateScore(score) {
-        this.scoreElement.innerText = `SCORE: ${score}`;
+        // Get the current label text
+        const currentText = this.scoreElement.innerText;
+        // Find the position of the last colon
+        const colonIndex = currentText.lastIndexOf(':');
+        
+        if (colonIndex !== -1) {
+            // Preserve the label part (everything up to and including the last colon)
+            const labelPart = currentText.substring(0, colonIndex + 1);
+            // Update only the value part
+            this.scoreElement.innerText = `${labelPart} ${score}`;
+        } else {
+            // Fallback if no colon is found
+            this.scoreElement.innerText = `SCORE: ${score}`;
+        }
     }
     
     updateCoins(coins) {
-        this.coinsElement.innerText = `COINS: ${coins}`;
+        // Get the current label text
+        const currentText = this.coinsElement.innerText;
+        // Find the position of the last colon
+        const colonIndex = currentText.lastIndexOf(':');
+        
+        if (colonIndex !== -1) {
+            // Preserve the label part (everything up to and including the last colon)
+            const labelPart = currentText.substring(0, colonIndex + 1);
+            // Update only the value part
+            this.coinsElement.innerText = `${labelPart} ${coins}`;
+        } else {
+            // Fallback if no colon is found
+            this.coinsElement.innerText = `COINS: ${coins}`;
+        }
     }
     
     updateCritChance(critChance) {
-        this.critElement.innerText = `CRIT: ${critChance}%`;
+        // Get the current label text
+        const currentText = this.critElement.innerText;
+        // Find the position of the last colon
+        const colonIndex = currentText.lastIndexOf(':');
+        
+        if (colonIndex !== -1) {
+            // Preserve the label part (everything up to and including the last colon)
+            const labelPart = currentText.substring(0, colonIndex + 1);
+            // Update only the value part
+            this.critElement.innerText = `${labelPart} ${critChance}%`;
+        } else {
+            // Fallback if no colon is found
+            this.critElement.innerText = `CRIT: ${critChance}%`;
+        }
+    }
+    
+    updateDamage(damage) {
+        // Get the current label text
+        const currentText = this.damageElement.innerText;
+        // Find the position of the last colon
+        const colonIndex = currentText.lastIndexOf(':');
+        
+        if (colonIndex !== -1) {
+            // Preserve the label part (everything up to and including the last colon)
+            const labelPart = currentText.substring(0, colonIndex + 1);
+            // Update only the value part
+            this.damageElement.innerText = `${labelPart} ${damage}`;
+        } else {
+            // Fallback if no colon is found
+            this.damageElement.innerText = `DAMAGE: ${damage}`;
+        }
+    }
+    
+    updateFireRate(fireRate) {
+        // Get the current label text
+        const currentText = this.fireRateElement.innerText;
+        // Find the position of the last colon
+        const colonIndex = currentText.lastIndexOf(':');
+        
+        if (colonIndex !== -1) {
+            // Preserve the label part (everything up to and including the last colon)
+            const labelPart = currentText.substring(0, colonIndex + 1);
+            // Update only the value part
+            this.fireRateElement.innerText = `${labelPart} ${fireRate}%`;
+        } else {
+            // Fallback if no colon is found
+            this.fireRateElement.innerText = `FIRE RATE::: ${fireRate}%`;
+        }
     }
     
     updateLives(lives) {
@@ -232,6 +307,8 @@ class Game {
         
         // Now update UI with player properties
         this.ui.updateCritChance(this.player.critChance);
+        this.ui.updateDamage(this.player.damage);
+        this.ui.updateFireRate(this.player.fireRate);
         
         // Initialize mouse position
         this.mouseX = this.canvas.width / 2;
@@ -270,6 +347,8 @@ class Game {
         this.ui.updateScore(this.score);
         this.ui.updateCoins(this.coins);
         this.ui.updateCritChance(this.player.critChance);
+        this.ui.updateDamage(this.player.damage);
+        this.ui.updateFireRate(this.player.fireRate);
         this.ui.updateLives(this.lives);
         this.ui.hideGameOver();
         
@@ -423,6 +502,9 @@ class Game {
                         // Create coin effect
                         this.addCoinEffect(alien.x, alien.y, alien.coins);
                         
+                        // Create explosion effect
+                        this.alienManager.addExplosion(alien.x, alien.y, alien.size);
+                        
                         // Remove alien
                         aliens.splice(j, 1);
                         
@@ -456,10 +538,11 @@ class Game {
         }
         
         // Check player collision with aliens
-        if (!this.gameOver) {
+        if (!this.gameOver && this.player) {
             const aliens = this.alienManager.getAliens();
             for (const alien of aliens) {
                 if (!this.player.isInvincible && AlienCollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
+                    console.log(`Player hit by alien! Lives remaining: ${this.lives}`);
                     // Player hit by alien, lose a life
                     this.lives--;
                     this.ui.updateLives(this.lives);
@@ -499,6 +582,9 @@ class Game {
         for (const alien of aliens) {
             alien.draw(this.ctx, this.assets.getAlienImage(alien.type));
         }
+        
+        // Draw alien explosions
+        this.alienManager.drawExplosions(this.ctx);
         
         // Draw player
         this.player.draw(this.ctx, this.assets.getPlayerImage());
@@ -622,15 +708,25 @@ class Game {
     }
     
     addLife() {
+        // Find the heart powerup config to get the value
+        const heartPowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'heart');
+        const livesToAdd = (heartPowerup && heartPowerup.VALUE) ? heartPowerup.VALUE : 1;
+        
         if (this.lives < GAME_CONFIG.PLAYER.MAX_LIVES) {
-            this.lives = Math.min(this.lives + 1, GAME_CONFIG.PLAYER.MAX_LIVES);
+            this.lives = Math.min(this.lives + livesToAdd, GAME_CONFIG.PLAYER.MAX_LIVES);
+            console.log(`Player lives increased to ${this.lives}`);
             this.ui.updateLives(this.lives);
         }
     }
     
     increaseDamage() {
-        this.player.damage += 1;
+        // Find the damage powerup config to get the value
+        const damagePowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'damage');
+        const increaseAmount = (damagePowerup && damagePowerup.VALUE) ? damagePowerup.VALUE : 1;
+        
+        this.player.damage += increaseAmount;
         console.log(`Player damage increased to ${this.player.damage}`);
+        this.ui.updateDamage(this.player.damage);
     }
     
     increaseCritChance() {
@@ -641,6 +737,17 @@ class Game {
             console.log(`Player critical chance increased to ${this.player.critChance}%`);
             this.ui.updateCritChance(this.player.critChance);
         }
+    }
+    
+    increaseFireRate() {
+        // Find the powerup config to get the fire rate increase value
+        const fireRatePowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'firerate');
+        const increaseAmount = (fireRatePowerup && fireRatePowerup.VALUE) ? fireRatePowerup.VALUE : 10;
+        
+        this.player.fireRate += increaseAmount;
+        this.player.fireRate = Math.min(this.player.fireRate, 90); // Cap at 90% (can't have 0ms fire rate)
+        console.log(`Player fire rate increased to ${this.player.fireRate}% (cooldown reduced by ${increaseAmount}%)`);
+        this.ui.updateFireRate(this.player.fireRate);
     }
     
     addExplosionEffect(x, y, size, powerupType) {

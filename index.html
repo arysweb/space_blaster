@@ -13,16 +13,22 @@
 <body>
     <div id="game-container">
         <div id="info-bar">
-            <div id="score-container">
+            <div class="column">
                 <div id="score">SCORE: 0</div>
-                <div id="coins">COINS: 0</div>
-                <div id="crit">CRIT: 0%</div>
             </div>
-            <div id="lives"></div>
+            <div class="column">
+                <div id="coins">COINS: 0</div>
+            </div>
+            <div class="column">
+                <div id="lives"></div>
+                <div id="crit">CRIT: 0%</div>
+                <div id="damage">DAMAGE: 0</div>
+                <div id="fire-rate">FIRE RATE: 0%</div>
+            </div>
         </div>
         <canvas id="gameCanvas"></canvas>
         <div id="gameOver">
-            <h1>GAME OVER</h1>
+            <h1>YOU DIED</h1>
             <p>Final Score: <span id="finalScore">0</span></p>
             <p>Coins Collected: <span id="finalCoins">0</span></p>
             <button id="restartButton">RESTART</button>

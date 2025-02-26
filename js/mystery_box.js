@@ -188,29 +188,16 @@ class MysteryBoxManager {
         this.spawnTimeout = null;
         
         // Get powerup types from config
-        this.powerupTypes = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.map(p => ({
-            type: p.TYPE,
-            weight: p.WEIGHT
-        }));
-        
-        // Calculate total weight for probability calculation
-        this.totalWeight = this.powerupTypes.reduce((sum, powerup) => sum + powerup.weight, 0);
+        this.powerupTypes = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.map(p => p.TYPE);
     }
     
-    // Get a random powerup type based on weights
+    // Get a random powerup type with equal probability
     getRandomPowerupType() {
-        const random = Math.random() * this.totalWeight;
-        let weightSum = 0;
+        // Get a random index from the powerup types array
+        const randomIndex = Math.floor(Math.random() * this.powerupTypes.length);
         
-        for (const powerup of this.powerupTypes) {
-            weightSum += powerup.weight;
-            if (random <= weightSum) {
-                return powerup.type;
-            }
-        }
-        
-        // Fallback to damage if something goes wrong
-        return 'damage';
+        // Return the powerup type at that index
+        return this.powerupTypes[randomIndex];
     }
     
     scheduleMysteryBoxSpawn() {
@@ -299,8 +286,6 @@ class MysteryBoxManager {
                             this.game.increaseDamage();
                             break;
                         case 'coins10':
-                        case 'coins20':
-                        case 'coins30':
                             // Find the powerup config to get the coin value
                             const coinPowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === powerupType);
                             if (coinPowerup && coinPowerup.VALUE) {
@@ -313,6 +298,10 @@ class MysteryBoxManager {
                         case 'crit':
                             // Increase player's critical hit chance
                             this.game.increaseCritChance();
+                            break;
+                        case 'firerate':
+                            // Increase player's fire rate
+                            this.game.increaseFireRate();
                             break;
                     }
                     

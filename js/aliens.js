@@ -103,11 +103,77 @@ class Alien {
     }
 }
 
+class AlienExplosion {
+    constructor(x, y, size) {
+        this.x = x;
+        this.y = y;
+        this.size = size * 0.75; // Make explosion smaller (75% of alien size)
+        this.opacity = 0; // Start with 0 opacity and fade in
+        this.fadeInComplete = false;
+        this.creationTime = Date.now();
+        this.lifespan = 300; // Reduced from 500ms to 300ms for faster removal
+        this.scale = 0.5; // Start small
+        this.maxScale = 1.0; // Grow to full size
+    }
+    
+    update() {
+        const elapsedTime = Date.now() - this.creationTime;
+        const progress = Math.min(1, elapsedTime / this.lifespan);
+        
+        // First 20% of time: fade in and grow
+        if (progress < 0.2) {
+            // Reduce max opacity to 0.5 (50%)
+            this.opacity = (progress / 0.2) * 0.5; 
+            this.scale = 0.5 + (progress / 0.2) * 0.5; // Scale from 0.5 to 1.0
+        } 
+        // Middle 40%: stay fully visible
+        else if (progress < 0.6) {
+            this.opacity = 0.5; // 50% opacity
+            this.scale = this.maxScale;
+        }
+        // Remaining 40%: fade out and grow slightly
+        else {
+            this.fadeInComplete = true;
+            // Map remaining progress (0.6-1.0) to opacity (0.5-0)
+            this.opacity = 0.5 - ((progress - 0.6) / 0.4) * 0.5;
+            // Slightly increase scale for "dissipation" effect
+            this.scale = this.maxScale + ((progress - 0.6) / 0.4) * 0.2;
+        }
+    }
+    
+    draw(ctx, image) {
+        if (!image || !image.complete || image.naturalWidth === 0) return;
+        
+        // Draw explosion
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        
+        // Calculate size with scale
+        const currentSize = this.size * this.scale;
+        
+        // Draw centered explosion image
+        ctx.drawImage(
+            image,
+            this.x - currentSize / 2,
+            this.y - currentSize / 2,
+            currentSize,
+            currentSize
+        );
+        
+        ctx.restore();
+    }
+    
+    isFinished() {
+        return this.fadeInComplete && this.opacity <= 0.05; // Remove when almost invisible
+    }
+}
+
 class AlienManager {
     constructor(game) {
         this.game = game;
         this.aliens = [];
         this.alienSpawnerTimeout = null;
+        this.explosions = [];
     }
     
     startAlienSpawner() {
@@ -170,6 +236,16 @@ class AlienManager {
                 this.aliens.splice(i, 1);
             }
         }
+        
+        // Update explosions
+        for (let i = this.explosions.length - 1; i >= 0; i--) {
+            this.explosions[i].update();
+            
+            // Remove explosions that are finished
+            if (this.explosions[i].isFinished()) {
+                this.explosions.splice(i, 1);
+            }
+        }
     }
     
     getRandomSpawnPosition() {
@@ -201,6 +277,7 @@ class AlienManager {
     
     reset() {
         this.aliens = [];
+        this.explosions = [];
         
         if (this.alienSpawnerTimeout) {
             clearTimeout(this.alienSpawnerTimeout);
@@ -210,6 +287,18 @@ class AlienManager {
     
     getAliens() {
         return this.aliens;
+    }
+    
+    addExplosion(x, y, size) {
+        const explosion = new AlienExplosion(x, y, size);
+        this.explosions.push(explosion);
+    }
+    
+    drawExplosions(ctx) {
+        for (let i = this.explosions.length - 1; i >= 0; i--) {
+            const explosion = this.explosions[i];
+            explosion.draw(ctx, this.game.assets.getExplosionImage());
+        }
     }
 }
 
@@ -233,6 +322,7 @@ class AlienCollisionDetector {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         Alien,
+        AlienExplosion,
         AlienManager,
         AlienCollisionDetector
     };
