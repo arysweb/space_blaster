@@ -37,9 +37,9 @@ const GAME_CONFIG = {
             'img/bg_elements/bg_cloud_3.png'
         ],
         CLOUD_SIZES: [500, 450, 400], // Increased sizes
-        CLOUD_SPEEDS: [0.9, 0.7, 0.4],
-        CLOUD_SPAWN_INTERVAL: 10000, // Increased interval to 15 seconds
-        MIN_CLOUD_DISTANCE: 200  // Minimum distance between clouds to prevent overlap
+        CLOUD_SPEEDS: [1, 0.7, 0.5],
+        CLOUD_SPAWN_INTERVAL: 10000, 
+        MIN_CLOUD_DISTANCE: 1000  // Minimum distance between clouds to prevent overlap
     },
     
     // Mystery box settings
