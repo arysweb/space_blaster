@@ -65,16 +65,6 @@ class CoinEffect {
     }
 }
 
-class CollisionDetector {
-    static checkBulletAlienCollision(bullet, alien) {
-        return AlienCollisionDetector.checkBulletAlienCollision(bullet, alien);
-    }
-    
-    static checkPlayerAlienCollision(player, alien) {
-        return AlienCollisionDetector.checkPlayerAlienCollision(player, alien);
-    }
-}
-
 class GameUI {
     constructor() {
         this.heartImage = new Image();
@@ -332,7 +322,7 @@ class Game {
             for (let j = aliens.length - 1; j >= 0; j--) {
                 const alien = aliens[j];
                 
-                if (CollisionDetector.checkBulletAlienCollision(bullet, alien)) {
+                if (AlienCollisionDetector.checkBulletAlienCollision(bullet, alien)) {
                     // Reduce alien health by bullet damage
                     alien.health -= bullet.damage;
                     
@@ -387,7 +377,7 @@ class Game {
         if (!this.gameOver) {
             const aliens = this.alienManager.getAliens();
             for (const alien of aliens) {
-                if (CollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
+                if (AlienCollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
                     this.lives--;
                     this.ui.updateLives(this.lives);
                     

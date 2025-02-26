@@ -13,12 +13,14 @@ class Alien {
             this.points = GAME_CONFIG.ENEMY.LARGE.POINTS;
             this.coins = GAME_CONFIG.ENEMY.LARGE.COINS;
             this.health = GAME_CONFIG.ENEMY.LARGE.HEALTH;
+            this.maxHealth = GAME_CONFIG.ENEMY.LARGE.HEALTH;
         } else { // Small alien
             this.size = GAME_CONFIG.ENEMY.SMALL.SIZE;
             this.speed = GAME_CONFIG.ENEMY.SMALL.SPEED;
             this.points = GAME_CONFIG.ENEMY.SMALL.POINTS;
             this.coins = GAME_CONFIG.ENEMY.SMALL.COINS;
             this.health = GAME_CONFIG.ENEMY.SMALL.HEALTH;
+            this.maxHealth = GAME_CONFIG.ENEMY.SMALL.HEALTH;
         }
         
         // Calculate direction towards center of screen
@@ -63,6 +65,35 @@ class Alien {
             ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
             ctx.fill();
         }
+        
+        // Draw health bar
+        this.drawHealthBar(ctx);
+    }
+    
+    drawHealthBar(ctx) {
+        // Health bar dimensions
+        const barWidth = this.size * 0.8;
+        const barHeight = 5;
+        const barX = this.x - barWidth / 2;
+        const barY = this.y - this.size / 2 - 10; // Position above the alien
+        
+        // Draw background (empty health bar)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // Calculate health percentage
+        const healthPercentage = this.health / this.maxHealth;
+        
+        // Use simple white color for the health bar
+        ctx.fillStyle = '#ffffff';
+        
+        // Draw filled health bar
+        ctx.fillRect(barX, barY, barWidth * healthPercentage, barHeight);
+        
+        // Draw border
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
     }
     
     isOffScreen() {
@@ -182,7 +213,6 @@ class AlienManager {
     }
 }
 
-// Also move the collision detection methods related to aliens
 class AlienCollisionDetector {
     static checkBulletAlienCollision(bullet, alien) {
         const dx = bullet.x - alien.x;
