@@ -239,76 +239,6 @@ class Alien {
     }
 }
 
-class MysteryBox {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.size = GAME_CONFIG.MYSTERY_BOX.SIZE;
-        this.rotation = 0;
-        this.scale = 1;
-        this.scaleDirection = 1;
-        this.points = GAME_CONFIG.MYSTERY_BOX.POINTS;
-        this.coins = GAME_CONFIG.MYSTERY_BOX.COINS;
-    }
-    
-    update() {
-        // Rotate the box
-        this.rotation += GAME_CONFIG.MYSTERY_BOX.ROTATION_SPEED;
-        
-        // Make the box pulse (scale up and down)
-        this.scale += this.scaleDirection * GAME_CONFIG.MYSTERY_BOX.PULSE_SPEED;
-        
-        // Reverse direction if reaching scale limits
-        if (this.scale > 1.2) {
-            this.scale = 1.2;
-            this.scaleDirection = -1;
-        } else if (this.scale < 0.8) {
-            this.scale = 0.8;
-            this.scaleDirection = 1;
-        }
-    }
-    
-    draw(ctx, image) {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        ctx.scale(this.scale, this.scale);
-        
-        // Check if image is loaded and not broken
-        if (image && image.complete && image.naturalWidth > 0) {
-            ctx.drawImage(
-                image,
-                -this.size / 2,
-                -this.size / 2,
-                this.size,
-                this.size
-            );
-        } else {
-            // Fallback: Draw a simple box if image is not available
-            ctx.fillStyle = '#ffaa00';
-            ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-            
-            // Draw question mark
-            ctx.fillStyle = 'black';
-            ctx.font = `${this.size / 2}px 'Press Start 2P'`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('?', 0, 0);
-        }
-        
-        ctx.restore();
-    }
-    
-    static spawn(canvasWidth, canvasHeight) {
-        // Random position within the visible area (with margin)
-        const margin = 100;
-        const x = margin + Math.random() * (canvasWidth - 2 * margin);
-        const y = margin + Math.random() * (canvasHeight - 2 * margin);
-        
-        return new MysteryBox(x, y);
-    }
-}
-
 class Cloud {
     constructor(x, y, type, canvasWidth, canvasHeight) {
         this.x = x;
@@ -569,11 +499,6 @@ class AssetLoader {
         this.alienImages.big.src = GAME_CONFIG.ENEMY.BIG.IMAGE;
         this.alienImages.big.onerror = () => console.warn('Failed to load big alien image');
         
-        // Mystery box image
-        this.mysteryBoxImage = new Image();
-        this.mysteryBoxImage.src = GAME_CONFIG.MYSTERY_BOX.IMAGE;
-        this.mysteryBoxImage.onerror = () => console.warn('Failed to load mystery box image');
-        
         // Coin image
         this.coinImage = new Image();
         this.coinImage.src = GAME_CONFIG.VISUAL.COIN_IMAGE;
@@ -590,6 +515,11 @@ class AssetLoader {
             this.cloudImages[i].src = GAME_CONFIG.BACKGROUND.CLOUD_IMAGES[i];
             this.cloudImages[i].onerror = () => console.warn(`Failed to load cloud image ${i+1}`);
         }
+        
+        // Mystery box image
+        this.mysteryBoxImage = new Image();
+        this.mysteryBoxImage.src = GAME_CONFIG.MYSTERY_BOX.IMAGE;
+        this.mysteryBoxImage.onerror = () => console.warn('Failed to load mystery box image');
     }
     
     createPlaceholderImage() {
@@ -623,12 +553,6 @@ class AssetLoader {
         return this.alienImages;
     }
     
-    getMysteryBoxImage() {
-        return this.mysteryBoxImage.complete && this.mysteryBoxImage.naturalWidth > 0 
-            ? this.mysteryBoxImage 
-            : this.placeholderImage;
-    }
-    
     getCoinImage() {
         return this.coinImage.complete && this.coinImage.naturalWidth > 0 
             ? this.coinImage 
@@ -652,14 +576,28 @@ class AssetLoader {
             img.complete && img.naturalWidth > 0 ? img : this.placeholderImage
         );
     }
+    
+    getCloudImage(type) {
+        // Make sure type is a valid index
+        const index = Math.min(Math.max(0, type), this.cloudImages.length - 1);
+        const img = this.cloudImages[index];
+        return img && img.complete && img.naturalWidth > 0 ? img : this.placeholderImage;
+    }
+    
+    getMysteryBoxImage() {
+        return this.mysteryBoxImage.complete && this.mysteryBoxImage.naturalWidth > 0 
+            ? this.mysteryBoxImage 
+            : this.placeholderImage;
+    }
 }
 
 class Game {
     constructor() {
+        // Set up canvas
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         
-        // Set up game state
+        // Initialize game state
         this.score = 0;
         this.coins = 0;
         this.lives = GAME_CONFIG.PLAYER.INITIAL_LIVES;
@@ -669,33 +607,37 @@ class Game {
         // Initialize empty arrays for game entities
         this.bullets = [];
         this.aliens = [];
-        this.mysteryBoxes = [];
         this.clouds = [];
         this.coinEffects = [];
         
-        // Create player in center of screen
+        // Initialize mystery box manager
+        this.mysteryBoxManager = new MysteryBoxManager(this);
+        
+        // Set up UI
+        this.ui = new GameUI();
+        this.ui.updateLives(this.lives);
+        this.ui.setupRestartButton(() => this.resetGame());
+        
+        // Load assets
+        this.assets = new AssetLoader();
+        
+        // Set up event listeners
+        window.addEventListener('resize', () => this.resizeCanvas());
+        this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
+        this.canvas.addEventListener('click', () => this.handleClick());
+        
+        // Initial canvas sizing
         this.resizeCanvas();
+        
+        // Create player in center of screen
         this.player = new Player(
             this.canvas.width / 2,
             this.canvas.height / 2
         );
         
-        // Set up UI
-        this.ui = new GameUI();
-        this.ui.updateScore(this.score);
-        this.ui.updateCoins(this.coins);
-        this.ui.updateLives(this.lives);
-        this.ui.hideGameOver();
-        
-        // Load assets
-        this.assets = new AssetLoader();
-        
         // Initialize mouse position to center of screen
         this.mouseX = this.canvas.width / 2;
         this.mouseY = this.canvas.height / 2;
-        
-        // Set up event listeners
-        this.setupEventListeners();
         
         // Set up initial clouds
         this.setupInitialClouds();
@@ -703,7 +645,7 @@ class Game {
         // Start spawners
         this.startAlienSpawner();
         this.startCloudSpawner();
-        this.scheduleMysteryBoxSpawn();
+        this.mysteryBoxManager.scheduleMysteryBoxSpawn();
         
         // Start game loop
         this.gameLoop();
@@ -719,7 +661,7 @@ class Game {
         this.bullets = [];
         this.coinEffects = [];
         this.clouds = [];
-        this.mysteryBoxes = [];
+        this.mysteryBoxManager.reset();
         this.gameStartTime = Date.now();
         
         // Reset UI
@@ -745,7 +687,7 @@ class Game {
         // Start spawners
         this.startAlienSpawner();
         this.startCloudSpawner();
-        this.scheduleMysteryBoxSpawn();
+        this.mysteryBoxManager.scheduleMysteryBoxSpawn();
     }
     
     resizeCanvas() {
@@ -838,29 +780,6 @@ class Game {
         }
     }
     
-    scheduleMysteryBoxSpawn() {
-        if (this.gameOver) return;
-        
-        // Add a delay before the first spawn
-        setTimeout(() => {
-            // Spawn a mystery box
-            this.mysteryBoxes.push(MysteryBox.spawn(this.canvas.width, this.canvas.height));
-            
-            // Schedule next spawn using the configured values
-            const minTime = GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_TIME;
-            const maxTime = GAME_CONFIG.MYSTERY_BOX.MAX_SPAWN_TIME;
-            const nextSpawnTime = minTime + Math.random() * (maxTime - minTime);
-            setTimeout(() => this.scheduleMysteryBoxSpawn(), nextSpawnTime);
-        }, GAME_CONFIG.MYSTERY_BOX.INITIAL_SPAWN_DELAY);
-    }
-    
-    spawnMysteryBox() {
-        if (this.gameOver) return;
-        
-        const mysteryBox = MysteryBox.spawn(this.canvas.width, this.canvas.height);
-        this.mysteryBoxes.push(mysteryBox);
-    }
-    
     addCoinEffect(x, y, count) {
         const effects = CoinEffect.createMultiple(x, y, count);
         this.coinEffects.push(...effects);
@@ -907,11 +826,6 @@ class Game {
             }
         }
         
-        // Update mystery boxes
-        for (const box of this.mysteryBoxes) {
-            box.update();
-        }
-        
         // Update coin effects
         for (let i = this.coinEffects.length - 1; i >= 0; i--) {
             this.coinEffects[i].update();
@@ -921,6 +835,9 @@ class Game {
                 this.coinEffects.splice(i, 1);
             }
         }
+        
+        // Update mystery box manager
+        this.mysteryBoxManager.update();
     }
     
     checkCollisions() {
@@ -929,41 +846,15 @@ class Game {
             const bullet = this.bullets[i];
             let bulletHit = false;
             
-            // Check collision with mystery boxes
-            for (let j = this.mysteryBoxes.length - 1; j >= 0; j--) {
-                const box = this.mysteryBoxes[j];
-                
-                if (CollisionDetector.checkBulletMysteryBoxCollision(bullet, box)) {
-                    // Add score and coins
-                    this.score += box.points;
-                    this.coins += box.coins;
-                    
-                    // Create coin effect
-                    this.addCoinEffect(box.x, box.y, box.coins / 5);
-                    
-                    // Remove mystery box and bullet
-                    this.mysteryBoxes.splice(j, 1);
-                    this.bullets.splice(i, 1);
-                    
-                    // Update displays
-                    this.ui.updateScore(this.score);
-                    this.ui.updateCoins(this.coins);
-                    
-                    bulletHit = true;
-                    break;
-                }
-            }
-            
-            // If bullet already hit something, continue to next bullet
-            if (bulletHit) continue;
-            
             // Check collision with aliens
             for (let j = this.aliens.length - 1; j >= 0; j--) {
                 const alien = this.aliens[j];
                 
                 if (CollisionDetector.checkBulletAlienCollision(bullet, alien)) {
-                    // Add score and coins
+                    // Add score
                     this.score += alien.points;
+                    
+                    // Add coins
                     this.coins += alien.coins;
                     
                     // Create coin effect
@@ -981,42 +872,59 @@ class Game {
                     break;
                 }
             }
+            
+            // If bullet already hit something, continue to next bullet
+            if (bulletHit) continue;
+            
+            // Check collision with mystery boxes
+            this.mysteryBoxManager.checkCollisions(
+                this.bullets, 
+                (points) => {
+                    this.score += points;
+                    this.ui.updateScore(this.score);
+                },
+                (coins) => {
+                    this.coins += coins;
+                    this.ui.updateCoins(this.coins);
+                },
+                (x, y, count) => this.addCoinEffect(x, y, count)
+            );
         }
         
         // Check alien collisions with player
-        for (let i = this.aliens.length - 1; i >= 0; i--) {
-            const alien = this.aliens[i];
-            
-            if (CollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
-                this.loseLife();
-                this.aliens.splice(i, 1);
+        if (!this.gameOver) {
+            for (let i = this.aliens.length - 1; i >= 0; i--) {
+                const alien = this.aliens[i];
+                
+                if (CollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
+                    // Player hit by alien - lose a life
+                    this.lives--;
+                    
+                    // Update lives display
+                    this.ui.updateLives(this.lives);
+                    
+                    // Remove the alien
+                    this.aliens.splice(i, 1);
+                    
+                    // Check for game over
+                    if (this.lives <= 0) {
+                        this.gameOver = true;
+                        this.ui.showGameOver(this.score, this.coins);
+                    }
+                    
+                    break;
+                }
             }
         }
     }
     
-    loseLife() {
-        this.lives--;
-        this.ui.updateLives(this.lives);
-        
-        if (this.lives <= 0) {
-            this.endGame();
-        }
-    }
-    
-    endGame() {
-        this.gameOver = true;
-        this.ui.showGameOver(this.score, this.coins);
-    }
-    
     drawEntities() {
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
         // Draw clouds (background)
         for (const cloud of this.clouds) {
             cloud.draw(this.ctx, this.assets.getCloudImages());
-        }
-        
-        // Draw player
-        if (this.player) {
-            this.player.draw(this.ctx, this.assets.getPlayerImage());
         }
         
         // Draw bullets
@@ -1024,15 +932,16 @@ class Game {
             bullet.draw(this.ctx, this.assets.getPlayerProjectileImage());
         }
         
+        // Draw player
+        this.player.draw(this.ctx, this.assets.getPlayerImage());
+        
         // Draw aliens
         for (const alien of this.aliens) {
             alien.draw(this.ctx, this.assets.getAlienImages());
         }
         
         // Draw mystery boxes
-        for (const box of this.mysteryBoxes) {
-            box.draw(this.ctx, this.assets.getMysteryBoxImage());
-        }
+        this.mysteryBoxManager.draw(this.ctx, this.assets.getMysteryBoxImage());
         
         // Draw coin effects
         for (const effect of this.coinEffects) {
@@ -1041,15 +950,32 @@ class Game {
     }
     
     gameLoop() {
-        // Clear canvas
-        this.ctx.fillStyle = GAME_CONFIG.COLORS.BACKGROUND;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        if (this.gameOver) {
+            // Only continue updating UI and handling input
+            requestAnimationFrame(() => this.gameLoop());
+            return;
+        }
         
-        // Update all entities
-        this.updateEntities();
+        // Update player
+        this.player.update(this.mouseX, this.mouseY);
         
-        // Try to shoot automatically
+        // Try to fire automatically
         this.tryPlayerShoot();
+        
+        // Update aliens
+        this.updateAliens();
+        
+        // Update bullets
+        this.updateBullets();
+        
+        // Update clouds
+        this.updateClouds();
+        
+        // Update coin effects
+        this.updateCoinEffects();
+        
+        // Update mystery boxes
+        this.mysteryBoxManager.update();
         
         // Check for collisions
         this.checkCollisions();
@@ -1065,6 +991,84 @@ class Game {
         // Add just one initial cloud
         const x = Math.random() * this.canvas.width;
         this.clouds.push(Cloud.spawn(this.canvas.width, this.canvas.height, x));
+    }
+    
+    handleMouseMove(event) {
+        this.mouseX = event.clientX;
+        this.mouseY = event.clientY;
+    }
+    
+    handleClick() {
+        if (this.gameOver) return;
+        
+        // Create a bullet
+        const angle = this.player.rotation;
+        const bulletSpeed = GAME_CONFIG.PLAYER.PROJECTILE_SPEED;
+        const bulletSize = GAME_CONFIG.PLAYER.PROJECTILE_SIZE;
+        
+        // Calculate bullet velocity based on player rotation
+        const vx = Math.cos(angle) * bulletSpeed;
+        const vy = Math.sin(angle) * bulletSpeed;
+        
+        // Create bullet at player position
+        this.bullets.push(new Bullet(
+            this.player.x,
+            this.player.y,
+            vx,
+            vy,
+            bulletSize
+        ));
+    }
+    
+    updateAliens() {
+        // Update aliens
+        for (let i = this.aliens.length - 1; i >= 0; i--) {
+            this.aliens[i].update();
+            
+            // Remove aliens that are off-screen
+            if (this.aliens[i].isOffScreen()) {
+                this.aliens.splice(i, 1);
+            }
+        }
+    }
+    
+    updateBullets() {
+        // Update bullets
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+            this.bullets[i].update();
+            
+            // Remove bullets that are off-screen
+            if (this.bullets[i].isOffScreen(this.canvas.width, this.canvas.height)) {
+                this.bullets.splice(i, 1);
+            }
+        }
+    }
+    
+    updateClouds() {
+        // Update clouds
+        for (let i = this.clouds.length - 1; i >= 0; i--) {
+            this.clouds[i].update();
+            
+            // Remove clouds that are off-screen
+            if (this.clouds[i].isOffScreen()) {
+                this.clouds.splice(i, 1);
+                
+                // Spawn a new cloud immediately when one goes off screen
+                this.trySpawnCloud();
+            }
+        }
+    }
+    
+    updateCoinEffects() {
+        // Update coin effects
+        for (let i = this.coinEffects.length - 1; i >= 0; i--) {
+            this.coinEffects[i].update();
+            
+            // Remove coin effects that are done
+            if (this.coinEffects[i].isDead()) {
+                this.coinEffects.splice(i, 1);
+            }
+        }
     }
 }
 
