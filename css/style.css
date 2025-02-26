@@ -142,3 +142,141 @@ body {
 .heart-fade-out {
     animation: heartFadeOut 0.5s ease-in-out forwards;
 }
+
+/* Shop Styles */
+.shop-button {
+    font-family: 'Press Start 2P', monospace;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.shop-button:hover {
+    background-color: #45a049;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    overflow: auto;
+}
+
+.overlay-content {
+    background-color: #222;
+    margin: 10% auto;
+    padding: 20px;
+    border: 3px solid #4CAF50;
+    width: 80%;
+    max-width: 600px;
+    color: white;
+    font-family: 'Press Start 2P', monospace;
+}
+
+.overlay-content h2 {
+    text-align: center;
+    color: #4CAF50;
+    margin-bottom: 20px;
+}
+
+.shop-balance {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: gold;
+}
+
+.shop-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.shop-item {
+    background-color: #333;
+    border: 2px solid #555;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.shop-item-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.shop-item-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    background-color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shop-item-icon img {
+    max-width: 30px;
+    max-height: 30px;
+}
+
+.shop-item-title {
+    font-size: 14px;
+    color: #4CAF50;
+}
+
+.shop-item-description {
+    font-size: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.shop-item-level {
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.shop-item-cost {
+    font-size: 12px;
+    color: gold;
+    margin-bottom: 10px;
+}
+
+.shop-item-button {
+    font-family: 'Press Start 2P', monospace;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 10px;
+}
+
+.shop-item-button:hover {
+    background-color: #45a049;
+}
+
+.shop-item-button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+#closeShopButton {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 20px;
+    font-size: 14px;
+}

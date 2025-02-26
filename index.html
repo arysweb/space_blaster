@@ -18,6 +18,7 @@
             </div>
             <div class="column">
                 <div id="coins">COINS: 0</div>
+                <button id="shopButton" class="shop-button">SHOP</button>
             </div>
             <div class="column">
                 <div id="lives"></div>
@@ -33,6 +34,28 @@
             <p>Coins Collected: <span id="finalCoins">0</span></p>
             <button id="restartButton">RESTART</button>
         </div>
+        
+        <!-- Shop Overlay -->
+        <div id="shopOverlay" class="overlay">
+            <div class="overlay-content">
+                <h2>UPGRADE SHOP</h2>
+                <div class="shop-balance">COINS: <span id="shopCoins">0</span></div>
+                <div id="shopItems" class="shop-items">
+                    <!-- Shop items will be dynamically generated here -->
+                </div>
+                <button id="closeShopButton" class="shop-button">CLOSE</button>
+            </div>
+        </div>
+        
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="overlay">
+            <div class="overlay-content">
+                <h2>GAME PAUSED</h2>
+                <p>Press ESC to resume</p>
+                <button id="resumeButton" class="shop-button">RESUME</button>
+                <button id="shopFromPauseButton" class="shop-button">SHOP</button>
+            </div>
+        </div>
     </div>
     
     <script src="js/config.js"></script>
@@ -41,6 +64,7 @@
     <script src="js/assetloader.js"></script>
     <script src="js/aliens.js"></script>
     <script src="js/player.js"></script>
+    <script src="js/shop.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

@@ -146,6 +146,7 @@ class GameUI {
         this.finalScoreElement = document.getElementById('finalScore');
         this.finalCoinsElement = document.getElementById('finalCoins');
         this.restartButtonElement = document.getElementById('restartButton');
+        this.shopButtonElement = document.getElementById('shopButton');
     }
     
     updateScore(score) {
@@ -261,6 +262,10 @@ class GameUI {
     setupRestartButton(callback) {
         this.restartButtonElement.addEventListener('click', callback);
     }
+    
+    setupShopButton(callback) {
+        this.shopButtonElement.addEventListener('click', callback);
+    }
 }
 
 class Game {
@@ -277,6 +282,7 @@ class Game {
         
         // Initialize game state
         this.gameOver = false;
+        this.isPaused = false;
         this.score = 0;
         this.coins = 0;
         this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
@@ -292,6 +298,7 @@ class Game {
         this.alienManager = new AlienManager(this);
         this.mysteryBoxManager = new MysteryBoxManager(this);
         this.cloudManager = new CloudManager(this);
+        this.shop = new Shop(this);
         
         // Initialize UI
         this.ui = new GameUI();
@@ -327,11 +334,33 @@ class Game {
         
         // Start game loop
         this.gameLoop();
+        
+        // Set up shop button
+        document.getElementById('shopButton').addEventListener('click', () => {
+            this.openShop();
+        });
+        
+        // Set up restart button
+        this.ui.setupRestartButton(() => this.resetGame());
+        
+        // Set up resume button
+        document.getElementById('resumeButton').addEventListener('click', () => {
+            this.resumeGame();
+        });
+        
+        // Set up shop from pause button
+        document.getElementById('shopFromPauseButton').addEventListener('click', () => {
+            // Hide pause overlay
+            document.getElementById('pauseOverlay').style.display = 'none';
+            // Open shop
+            this.openShop();
+        });
     }
     
     resetGame() {
         // Reset game state
         this.gameOver = false;
+        this.isPaused = false;
         this.score = 0;
         this.coins = 0;
         this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
@@ -362,6 +391,7 @@ class Game {
         this.alienManager.reset();
         this.mysteryBoxManager.reset();
         this.cloudManager.reset();
+        this.shop.reset();
         
         // Start the spawners
         this.alienManager.startAlienSpawner();
@@ -381,23 +411,56 @@ class Game {
     }
     
     setupInputHandling() {
-        // Track mouse movement
-        window.addEventListener('mousemove', (e) => {
-            this.mouseX = e.clientX;
-            this.mouseY = e.clientY;
+        // Handle mouse movement
+        this.canvas.addEventListener('mousemove', (event) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouseX = event.clientX - rect.left;
+            this.mouseY = event.clientY - rect.top;
+        });
+        
+        // Handle mouse click
+        this.canvas.addEventListener('mousedown', () => {
+            this.isMouseDown = true;
+            this.handleClick();
+        });
+        
+        // Handle mouse release
+        this.canvas.addEventListener('mouseup', () => {
+            this.isMouseDown = false;
+        });
+        
+        // Handle mouse leaving canvas
+        this.canvas.addEventListener('mouseleave', () => {
+            this.isMouseDown = false;
+        });
+        
+        // Handle keyboard input
+        document.addEventListener('keydown', (event) => {
+            // ESC key - Toggle pause
+            if (event.key === 'Escape') {
+                if (this.shop.isOpen) {
+                    // If shop is open, close it
+                    this.shop.closeShop();
+                } else {
+                    // Toggle pause state
+                    this.togglePause();
+                }
+            }
+            
+            // S key - Open shop
+            if (event.key === 's' || event.key === 'S') {
+                if (!this.gameOver && !this.shop.isOpen) {
+                    this.openShop();
+                }
+            }
         });
         
         // Handle window resize
         window.addEventListener('resize', () => this.setupCanvas());
-        
-        // Handle restart button
-        this.ui.setupRestartButton(() => {
-            this.resetGame();
-        });
     }
     
     tryPlayerShoot() {
-        if (this.gameOver || !this.player) return;
+        if (this.gameOver || this.isPaused || !this.player) return;
         
         const bullet = this.player.tryFire();
         if (bullet) {
@@ -617,6 +680,12 @@ class Game {
             return;
         }
         
+        // Check if game is paused
+        if (this.isPaused) {
+            requestAnimationFrame(() => this.gameLoop());
+            return;
+        }
+        
         // Update all game entities
         this.updateEntities();
         
@@ -633,7 +702,7 @@ class Game {
     }
     
     handleClick() {
-        if (this.gameOver) return;
+        if (this.gameOver || this.isPaused) return;
         
         // Create a bullet
         const angle = this.player.rotation;
@@ -752,6 +821,37 @@ class Game {
     
     addExplosionEffect(x, y, size, powerupType) {
         this.mysteryBoxManager.createExplosionEffect(x, y, size, powerupType);
+    }
+    
+    pauseGame() {
+        if (this.gameOver) return;
+        
+        this.isPaused = true;
+        
+        // Show pause overlay
+        document.getElementById('pauseOverlay').style.display = 'block';
+    }
+    
+    resumeGame() {
+        this.isPaused = false;
+        
+        // Hide pause overlay
+        document.getElementById('pauseOverlay').style.display = 'none';
+    }
+    
+    togglePause() {
+        if (this.gameOver) return;
+        
+        if (this.isPaused) {
+            this.resumeGame();
+        } else {
+            this.pauseGame();
+        }
+    }
+    
+    openShop() {
+        // Open shop UI
+        this.shop.openShop();
     }
 }
 

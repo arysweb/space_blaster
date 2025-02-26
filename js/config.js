@@ -80,6 +80,55 @@ const GAME_CONFIG = {
         }
     },
     
+    // Shop settings
+    SHOP: {
+        UPGRADES: [
+            { 
+                TYPE: 'damage', 
+                NAME: 'Damage', 
+                DESCRIPTION: 'Increase projectile damage',
+                BASE_COST: 10,
+                COST_MULTIPLIER: 1.5,
+                INCREMENT: 1,
+                MAX_LEVEL: 10,
+                ICON: 'img/shop/damage_icon.png'
+            },
+            { 
+                TYPE: 'firerate', 
+                NAME: 'Fire Rate', 
+                DESCRIPTION: 'Increase firing speed',
+                BASE_COST: 15,
+                COST_MULTIPLIER: 1.5,
+                INCREMENT: 5,
+                MAX_LEVEL: 10,
+                ICON: 'img/shop/firerate_icon.png'
+            },
+            { 
+                TYPE: 'crit', 
+                NAME: 'Critical Chance', 
+                DESCRIPTION: 'Increase critical hit chance',
+                BASE_COST: 20,
+                COST_MULTIPLIER: 1.7,
+                INCREMENT: 1,
+                MAX_LEVEL: 10,
+                ICON: 'img/shop/crit_icon.png'
+            },
+            { 
+                TYPE: 'health', 
+                NAME: 'Max Health', 
+                DESCRIPTION: 'Increase maximum health',
+                BASE_COST: 25,
+                COST_MULTIPLIER: 2,
+                INCREMENT: 1,
+                MAX_LEVEL: 5,
+                ICON: 'img/shop/health_icon.png'
+            }
+        ],
+        BUTTON_TEXT: 'SHOP',
+        TITLE: 'UPGRADE SHOP',
+        CLOSE_TEXT: 'CLOSE'
+    },
+    
     // Visual settings
     VISUAL: {
         PIXEL_SIZE: 2,
