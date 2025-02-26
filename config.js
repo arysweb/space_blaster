@@ -12,23 +12,21 @@ const GAME_CONFIG = {
     
     // Enemy settings
     ENEMY: {
+        SPAWN_INTERVAL: 1000, // 1 second (was 2 seconds)
+        LARGE: {
+            SIZE: 80,
+            SPEED: 0.8,
+            POINTS: 15,
+            COINS: 2,
+            IMAGE: 'img/aliens/alien_big.png'
+        },
         SMALL: {
-            SIZE: 30,
+            SIZE: 40,
             SPEED: 1,
             POINTS: 10,
             COINS: 1,
             IMAGE: 'img/aliens/alien_small.png'
-        },
-        BIG: {
-            SIZE: 50,
-            SPEED: 0.7,
-            POINTS: 25,
-            COINS: 2,
-            IMAGE: 'img/aliens/alien_big.png'
-        },
-        SPAWN_INTERVAL: 1000,
-        MIN_SPAWN_DISTANCE: 100,
-        BIG_ALIEN_START_TIME: 30000  // Start spawning big aliens after 30 seconds
+        }
     },
     
     // Background elements
@@ -39,8 +37,8 @@ const GAME_CONFIG = {
             'img/bg_elements/bg_cloud_3.png'
         ],
         CLOUD_SIZES: [500, 450, 400], // Increased sizes
-        CLOUD_SPEEDS: [0.5, 0.3, 0.2],
-        CLOUD_SPAWN_INTERVAL: 15000, // Increased interval to 15 seconds
+        CLOUD_SPEEDS: [0.9, 0.7, 0.4],
+        CLOUD_SPAWN_INTERVAL: 10000, // Increased interval to 15 seconds
         MIN_CLOUD_DISTANCE: 200  // Minimum distance between clouds to prevent overlap
     },
     
@@ -53,8 +51,7 @@ const GAME_CONFIG = {
         MAX_SPAWN_TIME: 30000, // 30 seconds
         INITIAL_SPAWN_DELAY: 10000, // 10 seconds delay before first spawn
         ROTATION_SPEED: 0.01,
-        PULSE_SPEED: 0.005,
-        POINTS: 50
+        PULSE_SPEED: 0.005
     },
     
     // Visual settings

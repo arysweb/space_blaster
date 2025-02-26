@@ -117,11 +117,12 @@ class Bullet {
     }
     
     isOffScreen(canvasWidth, canvasHeight) {
+        const margin = this.size * 2;
         return (
-            this.x < -this.size ||
-            this.x > canvasWidth + this.size ||
-            this.y < -this.size ||
-            this.y > canvasHeight + this.size
+            this.x < -margin ||
+            this.x > canvasWidth + margin ||
+            this.y < -margin ||
+            this.y > canvasHeight + margin
         );
     }
 }
@@ -130,21 +131,21 @@ class Alien {
     constructor(x, y, type, canvasWidth, canvasHeight) {
         this.x = x;
         this.y = y;
-        this.type = type; // 'small' or 'big'
+        this.type = type;
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         
-        // Set properties based on type
-        if (type === 'small') {
+        // Set properties based on alien type
+        if (type === 0) { // Large alien
+            this.size = GAME_CONFIG.ENEMY.LARGE.SIZE;
+            this.speed = GAME_CONFIG.ENEMY.LARGE.SPEED;
+            this.points = GAME_CONFIG.ENEMY.LARGE.POINTS;
+            this.coins = GAME_CONFIG.ENEMY.LARGE.COINS;
+        } else { // Small alien
             this.size = GAME_CONFIG.ENEMY.SMALL.SIZE;
             this.speed = GAME_CONFIG.ENEMY.SMALL.SPEED;
             this.points = GAME_CONFIG.ENEMY.SMALL.POINTS;
             this.coins = GAME_CONFIG.ENEMY.SMALL.COINS;
-        } else {
-            this.size = GAME_CONFIG.ENEMY.BIG.SIZE;
-            this.speed = GAME_CONFIG.ENEMY.BIG.SPEED;
-            this.points = GAME_CONFIG.ENEMY.BIG.POINTS;
-            this.coins = GAME_CONFIG.ENEMY.BIG.COINS;
         }
         
         // Calculate direction towards center of screen
@@ -162,12 +163,13 @@ class Alien {
     }
     
     update() {
+        // Move alien
         this.x += this.vx;
         this.y += this.vy;
     }
     
-    draw(ctx, images) {
-        const img = this.type === 'small' ? images.small : images.big;
+    draw(ctx, image) {
+        const img = image;
         
         // Check if image is loaded and not broken
         if (img && img.complete && img.naturalWidth > 0) {
@@ -181,146 +183,19 @@ class Alien {
             );
         } else {
             // Fallback: Draw a simple shape if image is not available
-            ctx.fillStyle = this.type === 'small' ? '#ff5555' : '#ff0000';
+            ctx.fillStyle = this.type === 0 ? '#ff0000' : '#ff5555';
             
             // Draw alien shape
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
             ctx.fill();
-            
-            // Add some details
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(this.x - this.size/5, this.y - this.size/5, this.size/10, 0, Math.PI * 2);
-            ctx.arc(this.x + this.size/5, this.y - this.size/5, this.size/10, 0, Math.PI * 2);
-            ctx.fill();
         }
     }
     
     isOffScreen() {
-        const margin = this.size * 2;
-        return (
-            this.x < -margin ||
-            this.x > this.canvasWidth + margin ||
-            this.y < -margin ||
-            this.y > this.canvasHeight + margin
-        );
-    }
-    
-    static spawn(canvasWidth, canvasHeight, gameStartTime) {
-        // Determine spawn position (outside the screen)
-        const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
-        let x, y;
-        
-        switch (side) {
-            case 0: // top
-                x = Math.random() * canvasWidth;
-                y = -50;
-                break;
-            case 1: // right
-                x = canvasWidth + 50;
-                y = Math.random() * canvasHeight;
-                break;
-            case 2: // bottom
-                x = Math.random() * canvasWidth;
-                y = canvasHeight + 50;
-                break;
-            case 3: // left
-                x = -50;
-                y = Math.random() * canvasHeight;
-                break;
-        }
-        
-        // Determine if it's a big alien (based on time and random chance)
-        const isBigAlien = Date.now() - gameStartTime > GAME_CONFIG.ENEMY.BIG_ALIEN_START_TIME && Math.random() < 0.3;
-        const type = isBigAlien ? 'big' : 'small';
-        
-        return new Alien(x, y, type, canvasWidth, canvasHeight);
-    }
-}
-
-class Cloud {
-    constructor(x, y, type, canvasWidth, canvasHeight) {
-        this.x = x;
-        this.y = y;
-        this.type = type;
-        this.canvasWidth = canvasWidth;
-        this.canvasHeight = canvasHeight;
-        this.size = GAME_CONFIG.BACKGROUND.CLOUD_SIZES[type];
-        this.speed = GAME_CONFIG.BACKGROUND.CLOUD_SPEEDS[type];
-    }
-    
-    update() {
-        // Move cloud from right to left
-        this.x -= this.speed;
-    }
-    
-    draw(ctx, images) {
-        const img = images[this.type];
-        
-        // Set opacity for clouds
-        ctx.globalAlpha = 0.3; // 30% opacity
-        
-        // Check if image is loaded and not broken
-        if (img && img.complete && img.naturalWidth > 0) {
-            ctx.drawImage(
-                img,
-                this.x - this.size / 2,
-                this.y - this.size / 2,
-                this.size,
-                this.size
-            );
-        } else {
-            // Fallback: Draw a simple cloud shape if image is not available
-            ctx.fillStyle = '#aaaaaa';
-            
-            // Draw cloud shape
-            const radius = this.size / 4;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
-            ctx.arc(this.x + radius, this.y - radius / 2, radius * 0.8, 0, Math.PI * 2);
-            ctx.arc(this.x - radius, this.y - radius / 2, radius * 0.8, 0, Math.PI * 2);
-            ctx.arc(this.x + radius * 2, this.y, radius * 0.7, 0, Math.PI * 2);
-            ctx.arc(this.x - radius * 2, this.y, radius * 0.7, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Reset opacity
-        ctx.globalAlpha = 1.0;
-    }
-    
-    isOffScreen() {
-        return this.x < -this.size;
-    }
-    
-    static spawn(canvasWidth, canvasHeight, x = null) {
-        // Randomly select cloud type (0: large, 1: medium, 2: small)
-        const cloudType = Math.floor(Math.random() * 3);
-        const cloudSize = GAME_CONFIG.BACKGROUND.CLOUD_SIZES[cloudType];
-        
-        // Set initial x position
-        let cloudX = x !== null ? x : canvasWidth + cloudSize/2;
-        
-        // Set random y position
-        const cloudY = Math.random() * canvasHeight;
-        
-        return new Cloud(cloudX, cloudY, cloudType, canvasWidth, canvasHeight);
-    }
-    
-    static checkOverlap(newCloud, existingClouds) {
-        const minDistance = GAME_CONFIG.BACKGROUND.MIN_CLOUD_DISTANCE;
-        
-        for (const cloud of existingClouds) {
-            const dx = newCloud.x - cloud.x;
-            const dy = newCloud.y - cloud.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < minDistance) {
-                return true; // Overlapping
-            }
-        }
-        
-        return false; // Not overlapping
+        // Aliens are never off-screen in this game design
+        // They always move towards the player in the center
+        return false;
     }
 }
 
@@ -396,24 +271,14 @@ class CollisionDetector {
         const dx = bullet.x - alien.x;
         const dy = bullet.y - alien.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        return distance < alien.size / 2;
-    }
-    
-    static checkBulletMysteryBoxCollision(bullet, mysteryBox) {
-        const dx = bullet.x - mysteryBox.x;
-        const dy = bullet.y - mysteryBox.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        return distance < mysteryBox.size / 2;
+        return distance < alien.size / 2 + bullet.size / 2;
     }
     
     static checkPlayerAlienCollision(player, alien) {
         const dx = player.x - alien.x;
         const dy = player.y - alien.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        return distance < player.size / 2 + alien.size / 2;
+        return distance < alien.size / 2 + player.size / 2;
     }
 }
 
@@ -476,7 +341,8 @@ class GameUI {
 class AssetLoader {
     constructor() {
         // Create placeholder for missing images
-        this.placeholderImage = this.createPlaceholderImage();
+        this.placeholderImage = new Image();
+        this.placeholderImage.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
         
         // Player image
         this.playerImage = new Image();
@@ -490,14 +356,14 @@ class AssetLoader {
         
         // Alien images
         this.alienImages = {
-            small: new Image(),
-            big: new Image()
+            0: new Image(),
+            1: new Image()
         };
-        this.alienImages.small.src = GAME_CONFIG.ENEMY.SMALL.IMAGE;
-        this.alienImages.small.onerror = () => console.warn('Failed to load small alien image');
+        this.alienImages[0].src = GAME_CONFIG.ENEMY.LARGE.IMAGE;
+        this.alienImages[0].onerror = () => console.warn('Failed to load large alien image');
         
-        this.alienImages.big.src = GAME_CONFIG.ENEMY.BIG.IMAGE;
-        this.alienImages.big.onerror = () => console.warn('Failed to load big alien image');
+        this.alienImages[1].src = GAME_CONFIG.ENEMY.SMALL.IMAGE;
+        this.alienImages[1].onerror = () => console.warn('Failed to load small alien image');
         
         // Coin image
         this.coinImage = new Image();
@@ -522,31 +388,12 @@ class AssetLoader {
         this.mysteryBoxImage.onerror = () => console.warn('Failed to load mystery box image');
     }
     
-    createPlaceholderImage() {
-        // Create a canvas element to generate a placeholder image
-        const canvas = document.createElement('canvas');
-        const size = 32;
-        canvas.width = size;
-        canvas.height = size;
+    getAlienImage(type) {
+        const img = this.alienImages[type];
         
-        // Draw a simple placeholder pattern
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(255, 0, 255, 0.5)'; // Magenta with transparency
-        ctx.fillRect(0, 0, size, size);
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, size, size);
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(size, size);
-        ctx.moveTo(size, 0);
-        ctx.lineTo(0, size);
-        ctx.stroke();
-        
-        // Create an image from the canvas
-        const img = new Image();
-        img.src = canvas.toDataURL();
-        return img;
+        return img && img.complete && img.naturalWidth > 0 
+            ? img 
+            : this.placeholderImage;
     }
     
     getAlienImages() {
@@ -593,58 +440,61 @@ class AssetLoader {
 
 class Game {
     constructor() {
-        // Set up canvas
+        // Get canvas and context
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         
+        // Set up canvas dimensions
+        this.setupCanvas();
+        
+        // Initialize asset loader
+        this.assets = new AssetLoader();
+        
         // Initialize game state
+        this.gameOver = false;
         this.score = 0;
         this.coins = 0;
         this.lives = GAME_CONFIG.PLAYER.INITIAL_LIVES;
-        this.gameOver = false;
         this.gameStartTime = Date.now();
+        this.alienSpawnerTimeout = null;
         
         // Initialize empty arrays for game entities
         this.bullets = [];
         this.aliens = [];
-        this.clouds = [];
         this.coinEffects = [];
         
         // Initialize mystery box manager
         this.mysteryBoxManager = new MysteryBoxManager(this);
         
-        // Set up UI
+        // Initialize cloud manager
+        this.cloudManager = new CloudManager(this);
+        
+        // Initialize UI
         this.ui = new GameUI();
+        this.ui.updateScore(this.score);
+        this.ui.updateCoins(this.coins);
         this.ui.updateLives(this.lives);
-        this.ui.setupRestartButton(() => this.resetGame());
         
-        // Load assets
-        this.assets = new AssetLoader();
-        
-        // Set up event listeners
-        window.addEventListener('resize', () => this.resizeCanvas());
-        this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
-        this.canvas.addEventListener('click', () => this.handleClick());
-        
-        // Initial canvas sizing
-        this.resizeCanvas();
+        // Set up input handling
+        this.setupInputHandling();
         
         // Create player in center of screen
         this.player = new Player(
             this.canvas.width / 2,
-            this.canvas.height / 2
+            this.canvas.height / 2,
+            50
         );
         
-        // Initialize mouse position to center of screen
+        // Initialize mouse position
         this.mouseX = this.canvas.width / 2;
         this.mouseY = this.canvas.height / 2;
         
         // Set up initial clouds
-        this.setupInitialClouds();
+        this.cloudManager.setupInitialClouds();
         
         // Start spawners
         this.startAlienSpawner();
-        this.startCloudSpawner();
+        this.cloudManager.startCloudSpawner();
         this.mysteryBoxManager.scheduleMysteryBoxSpawn();
         
         // Start game loop
@@ -660,37 +510,42 @@ class Game {
         this.aliens = [];
         this.bullets = [];
         this.coinEffects = [];
-        this.clouds = [];
         this.mysteryBoxManager.reset();
+        this.cloudManager.reset();
         this.gameStartTime = Date.now();
         
         // Reset UI
-        this.ui.updateLives(this.lives);
         this.ui.updateScore(this.score);
         this.ui.updateCoins(this.coins);
+        this.ui.updateLives(this.lives);
         this.ui.hideGameOver();
         
         // Create player in center of screen
-        this.resizeCanvas();
         this.player = new Player(
             this.canvas.width / 2,
-            this.canvas.height / 2
+            this.canvas.height / 2,
+            50
         );
         
-        // Initialize mouse position to center of screen
+        // Initialize mouse position
         this.mouseX = this.canvas.width / 2;
         this.mouseY = this.canvas.height / 2;
         
         // Set up initial clouds
-        this.setupInitialClouds();
+        this.cloudManager.setupInitialClouds();
+        
+        // Clear any existing spawner timeouts
+        if (this.alienSpawnerTimeout) {
+            clearTimeout(this.alienSpawnerTimeout);
+        }
         
         // Start spawners
         this.startAlienSpawner();
-        this.startCloudSpawner();
+        this.cloudManager.startCloudSpawner();
         this.mysteryBoxManager.scheduleMysteryBoxSpawn();
     }
     
-    resizeCanvas() {
+    setupCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         
@@ -701,7 +556,7 @@ class Game {
         }
     }
     
-    setupEventListeners() {
+    setupInputHandling() {
         // Track mouse movement
         window.addEventListener('mousemove', (e) => {
             this.mouseX = e.clientX;
@@ -709,7 +564,7 @@ class Game {
         });
         
         // Handle window resize
-        window.addEventListener('resize', () => this.resizeCanvas());
+        window.addEventListener('resize', () => this.setupCanvas());
         
         // Handle restart button
         this.ui.setupRestartButton(() => {
@@ -736,48 +591,56 @@ class Game {
         if (this.gameOver) return;
         
         // Spawn an alien
-        this.aliens.push(Alien.spawn(this.canvas.width, this.canvas.height, this.gameStartTime));
+        const spawnPosition = this.getRandomSpawnPosition();
+        
+        // Determine alien type based on game time
+        const gameTime = Date.now() - this.gameStartTime;
+        let alienType;
+        
+        if (gameTime > 30000) { // After 30 seconds, both types possible
+            alienType = Math.random() < 0.3 ? 0 : 1; // 30% chance for large alien
+        } else { // First 30 seconds, only small
+            alienType = 1; // Small alien
+        }
+        
+        const alien = new Alien(
+            spawnPosition.x,
+            spawnPosition.y,
+            alienType,
+            this.canvas.width,
+            this.canvas.height
+        );
+        
+        this.aliens.push(alien);
+        
+        // Calculate spawn interval based on game time (gets shorter as game progresses)
+        let spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
+        
+        // Reduce spawn interval as game progresses (minimum 300ms)
+        if (gameTime > 60000) { // After 1 minute
+            spawnInterval = Math.max(300, spawnInterval - (gameTime / 60000) * 200);
+        }
+        
+        // Add some randomness to the spawn interval (±20%)
+        const nextSpawnTime = spawnInterval * (0.8 + Math.random() * 0.4);
         
         // Schedule next spawn
-        const nextSpawnTime = GAME_CONFIG.ENEMY.SPAWN_INTERVAL * (0.8 + Math.random() * 0.4);
-        setTimeout(() => this.startAlienSpawner(), nextSpawnTime);
+        this.alienSpawnerTimeout = setTimeout(() => this.startAlienSpawner(), nextSpawnTime);
     }
     
     spawnAlien() {
         if (this.gameOver) return;
         
-        const alien = Alien.spawn(
+        const spawnPosition = this.getRandomSpawnPosition();
+        const alien = new Alien(
+            spawnPosition.x,
+            spawnPosition.y,
+            1, // Small alien
             this.canvas.width,
-            this.canvasHeight,
-            this.gameStartTime
+            this.canvas.height
         );
         
         this.aliens.push(alien);
-    }
-    
-    startCloudSpawner() {
-        if (this.gameOver) return;
-        
-        // Only spawn a new cloud if there are no clouds on screen
-        if (this.clouds.length === 0) {
-            // Spawn a cloud
-            const newCloud = Cloud.spawn(this.canvas.width, this.canvas.height);
-            this.clouds.push(newCloud);
-        }
-        
-        // Schedule next spawn check, regardless of whether we spawned a cloud or not
-        const nextSpawnTime = 2000; // Check every 2 seconds
-        setTimeout(() => this.startCloudSpawner(), nextSpawnTime);
-    }
-    
-    trySpawnCloud() {
-        if (this.gameOver) return;
-        
-        // Only spawn a new cloud if there are no clouds on screen
-        if (this.clouds.length === 0) {
-            const newCloud = Cloud.spawn(this.canvas.width, this.canvas.height);
-            this.clouds.push(newCloud);
-        }
     }
     
     addCoinEffect(x, y, count) {
@@ -813,19 +676,6 @@ class Game {
             }
         }
         
-        // Update clouds
-        for (let i = this.clouds.length - 1; i >= 0; i--) {
-            this.clouds[i].update();
-            
-            // Remove clouds that are off-screen
-            if (this.clouds[i].isOffScreen()) {
-                this.clouds.splice(i, 1);
-                
-                // Spawn a new cloud immediately when one goes off screen
-                this.trySpawnCloud();
-            }
-        }
-        
         // Update coin effects
         for (let i = this.coinEffects.length - 1; i >= 0; i--) {
             this.coinEffects[i].update();
@@ -838,6 +688,9 @@ class Game {
         
         // Update mystery box manager
         this.mysteryBoxManager.update();
+        
+        // Update cloud manager
+        this.cloudManager.update();
     }
     
     checkCollisions() {
@@ -923,25 +776,25 @@ class Game {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Draw clouds (background)
-        for (const cloud of this.clouds) {
-            cloud.draw(this.ctx, this.assets.getCloudImages());
-        }
+        this.cloudManager.draw(this.ctx, this.assets.getCloudImages());
         
         // Draw bullets
         for (const bullet of this.bullets) {
             bullet.draw(this.ctx, this.assets.getPlayerProjectileImage());
         }
         
-        // Draw player
-        this.player.draw(this.ctx, this.assets.getPlayerImage());
-        
         // Draw aliens
         for (const alien of this.aliens) {
-            alien.draw(this.ctx, this.assets.getAlienImages());
+            alien.draw(this.ctx, this.assets.getAlienImage(alien.type));
         }
         
         // Draw mystery boxes
         this.mysteryBoxManager.draw(this.ctx, this.assets.getMysteryBoxImage());
+        
+        // Draw player
+        if (this.player) {
+            this.player.draw(this.ctx, this.assets.getPlayerImage());
+        }
         
         // Draw coin effects
         for (const effect of this.coinEffects) {
@@ -968,14 +821,14 @@ class Game {
         // Update bullets
         this.updateBullets();
         
-        // Update clouds
-        this.updateClouds();
-        
         // Update coin effects
         this.updateCoinEffects();
         
         // Update mystery boxes
         this.mysteryBoxManager.update();
+        
+        // Update clouds
+        this.cloudManager.update();
         
         // Check for collisions
         this.checkCollisions();
@@ -985,12 +838,6 @@ class Game {
         
         // Continue game loop
         requestAnimationFrame(() => this.gameLoop());
-    }
-    
-    setupInitialClouds() {
-        // Add just one initial cloud
-        const x = Math.random() * this.canvas.width;
-        this.clouds.push(Cloud.spawn(this.canvas.width, this.canvas.height, x));
     }
     
     handleMouseMove(event) {
@@ -1044,21 +891,6 @@ class Game {
         }
     }
     
-    updateClouds() {
-        // Update clouds
-        for (let i = this.clouds.length - 1; i >= 0; i--) {
-            this.clouds[i].update();
-            
-            // Remove clouds that are off-screen
-            if (this.clouds[i].isOffScreen()) {
-                this.clouds.splice(i, 1);
-                
-                // Spawn a new cloud immediately when one goes off screen
-                this.trySpawnCloud();
-            }
-        }
-    }
-    
     updateCoinEffects() {
         // Update coin effects
         for (let i = this.coinEffects.length - 1; i >= 0; i--) {
@@ -1069,6 +901,33 @@ class Game {
                 this.coinEffects.splice(i, 1);
             }
         }
+    }
+    
+    getRandomSpawnPosition() {
+        // Determine spawn position (outside the screen)
+        const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+        let x, y;
+        
+        switch (side) {
+            case 0: // top
+                x = Math.random() * this.canvas.width;
+                y = -50;
+                break;
+            case 1: // right
+                x = this.canvas.width + 50;
+                y = Math.random() * this.canvas.height;
+                break;
+            case 2: // bottom
+                x = Math.random() * this.canvas.width;
+                y = this.canvas.height + 50;
+                break;
+            case 3: // left
+                x = -50;
+                y = Math.random() * this.canvas.height;
+                break;
+        }
+        
+        return { x, y };
     }
 }
 

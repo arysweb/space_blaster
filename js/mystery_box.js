@@ -6,7 +6,6 @@ class MysteryBox {
         this.rotation = 0;
         this.scale = 1;
         this.scaleDirection = 1;
-        this.points = GAME_CONFIG.MYSTERY_BOX.POINTS;
         this.coins = GAME_CONFIG.MYSTERY_BOX.COINS;
     }
     
@@ -121,8 +120,7 @@ class MysteryBoxManager {
                 const box = this.mysteryBoxes[j];
                 
                 if (this.checkBulletMysteryBoxCollision(bullet, box)) {
-                    // Add score and coins
-                    addScore(box.points);
+                    // Only add coins, no points
                     addCoins(box.coins);
                     
                     // Create coin effect
