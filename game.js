@@ -167,18 +167,15 @@ class Alien {
     }
     
     draw(ctx, images) {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        
         const img = this.type === 'small' ? images.small : images.big;
         
         // Check if image is loaded and not broken
         if (img && img.complete && img.naturalWidth > 0) {
+            // Draw the image without rotation, just centered at the alien's position
             ctx.drawImage(
                 img,
-                -this.size/2,
-                -this.size/2,
+                this.x - this.size/2,
+                this.y - this.size/2,
                 this.size,
                 this.size
             );
@@ -188,18 +185,16 @@ class Alien {
             
             // Draw alien shape
             ctx.beginPath();
-            ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
             ctx.fill();
             
             // Add some details
             ctx.fillStyle = 'black';
             ctx.beginPath();
-            ctx.arc(-this.size/5, -this.size/5, this.size/10, 0, Math.PI * 2);
-            ctx.arc(this.size/5, -this.size/5, this.size/10, 0, Math.PI * 2);
+            ctx.arc(this.x - this.size/5, this.y - this.size/5, this.size/10, 0, Math.PI * 2);
+            ctx.arc(this.x + this.size/5, this.y - this.size/5, this.size/10, 0, Math.PI * 2);
             ctx.fill();
         }
-        
-        ctx.restore();
     }
     
     isOffScreen() {

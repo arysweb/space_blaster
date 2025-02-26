@@ -1,7 +1,7 @@
 const GAME_CONFIG = {
     // Player settings
     PLAYER: {
-        SIZE: 25, // Increased from 15
+        SIZE: 15, // Increased from 15
         FIRE_INTERVAL: 200, // Fire every 200ms
         BULLET_SPEED: 8,
         BULLET_SIZE: 10,
@@ -41,7 +41,7 @@ const GAME_CONFIG = {
         CLOUD_SIZES: [500, 450, 400], // Increased sizes
         CLOUD_SPEEDS: [0.5, 0.3, 0.2],
         CLOUD_SPAWN_INTERVAL: 15000, // Increased interval to 15 seconds
-        MIN_CLOUD_DISTANCE: 350  // Minimum distance between clouds to prevent overlap
+        MIN_CLOUD_DISTANCE: 200  // Minimum distance between clouds to prevent overlap
     },
     
     // Mystery box settings
