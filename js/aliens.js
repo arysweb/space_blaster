@@ -37,10 +37,42 @@ class Alien {
         this.rotation = Math.atan2(dy, dx);
     }
     
-    update() {
+    update(allAliens) {
         // Move alien
         this.x += this.vx;
         this.y += this.vy;
+        
+        // Avoid collisions with other aliens if provided
+        if (allAliens) {
+            this.avoidCollisions(allAliens);
+        }
+    }
+    
+    avoidCollisions(allAliens) {
+        const repulsionStrength = 0.3; // How strongly aliens repel each other
+        const minDistance = this.size * 1.1; // Minimum distance to maintain
+        
+        for (const other of allAliens) {
+            // Skip self
+            if (other === this) continue;
+            
+            // Calculate distance between aliens
+            const dx = this.x - other.x;
+            const dy = this.y - other.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // If too close, apply repulsion force
+            if (distance < minDistance) {
+                // Calculate repulsion direction (normalized)
+                const nx = dx / distance || 0; // Avoid division by zero
+                const ny = dy / distance || 0;
+                
+                // Apply repulsion force (stronger when closer)
+                const force = repulsionStrength * (1 - distance / minDistance);
+                this.vx += nx * force;
+                this.vy += ny * force;
+            }
+        }
     }
     
     draw(ctx, image) {
@@ -223,13 +255,19 @@ class AlienManager {
             this.game.canvas.height
         );
         
+        // Add a small random variation to the alien's velocity
+        // This helps prevent aliens from following the exact same path and overlapping
+        const variationFactor = 0.15; // 15% maximum variation
+        alien.vx *= (1 + (Math.random() * 2 - 1) * variationFactor);
+        alien.vy *= (1 + (Math.random() * 2 - 1) * variationFactor);
+        
         this.aliens.push(alien);
     }
     
     updateAliens() {
         // Update aliens
         for (let i = this.aliens.length - 1; i >= 0; i--) {
-            this.aliens[i].update();
+            this.aliens[i].update(this.aliens);
             
             // Remove aliens that are off-screen
             if (this.aliens[i].isOffScreen()) {
@@ -252,27 +290,61 @@ class AlienManager {
         // Determine spawn position (outside the screen)
         const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
         let x, y;
+        let attempts = 0;
+        const maxAttempts = 10; // Maximum number of attempts to find a non-overlapping position
         
-        switch (side) {
-            case 0: // top
-                x = Math.random() * this.game.canvas.width;
-                y = -50;
-                break;
-            case 1: // right
-                x = this.game.canvas.width + 50;
-                y = Math.random() * this.game.canvas.height;
-                break;
-            case 2: // bottom
-                x = Math.random() * this.game.canvas.width;
-                y = this.game.canvas.height + 50;
-                break;
-            case 3: // left
-                x = -50;
-                y = Math.random() * this.game.canvas.height;
-                break;
+        do {
+            switch (side) {
+                case 0: // top
+                    x = Math.random() * this.game.canvas.width;
+                    y = -50;
+                    break;
+                case 1: // right
+                    x = this.game.canvas.width + 50;
+                    y = Math.random() * this.game.canvas.height;
+                    break;
+                case 2: // bottom
+                    x = Math.random() * this.game.canvas.width;
+                    y = this.game.canvas.height + 50;
+                    break;
+                case 3: // left
+                    x = -50;
+                    y = Math.random() * this.game.canvas.height;
+                    break;
+            }
+            
+            // Check if this position would overlap with any existing aliens
+            if (this.isPositionClear(x, y)) {
+                return { x, y };
+            }
+            
+            attempts++;
+        } while (attempts < maxAttempts);
+        
+        // If we couldn't find a clear position after maxAttempts, return the last position
+        // This is a fallback to prevent infinite loops
+        return { x, y };
+    }
+    
+    isPositionClear(x, y) {
+        // Determine the minimum safe distance between aliens
+        // This should be based on the largest alien size plus some buffer
+        const safeDistance = GAME_CONFIG.ENEMY.LARGE.SIZE * 1.2; // 20% buffer
+        
+        // Check distance to all existing aliens
+        for (const alien of this.aliens) {
+            const dx = x - alien.x;
+            const dy = y - alien.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // If too close to an existing alien, position is not clear
+            if (distance < safeDistance) {
+                return false;
+            }
         }
         
-        return { x, y };
+        // No overlaps found, position is clear
+        return true;
     }
     
     reset() {

@@ -67,17 +67,18 @@ class Shop {
             
             // Create item content
             itemElement.innerHTML = `
-                <div class="shop-item-header">
-                    <div class="shop-item-icon">
-                        <img src="${upgrade.ICON}" alt="${upgrade.NAME}" onerror="this.src='img/mystery_box.png'">
-                    </div>
-                    <div class="shop-item-title">${upgrade.NAME}</div>
-                </div>
+                <div class="shop-item-title">${upgrade.NAME}</div>
                 <div class="shop-item-description">${upgrade.DESCRIPTION}</div>
-                <div class="shop-item-level">Level: ${level}/${upgrade.MAX_LEVEL}</div>
-                <button class="shop-item-button" data-type="${upgrade.TYPE}" ${isMaxLevel ? 'disabled' : ''}>
-                    ${isMaxLevel ? 'MAXED' : cost + ' COINS'}
-                </button>
+                <div class="shop-item-progress-container">
+                    <div class="shop-item-progress">
+                        <div class="shop-item-progress-bar" style="width: ${(level / upgrade.MAX_LEVEL) * 100}%"></div>
+                        <div class="shop-item-progress-text">${level}/${upgrade.MAX_LEVEL}</div>
+                    </div>
+                    <button class="shop-item-button" data-type="${upgrade.TYPE}" ${isMaxLevel ? 'disabled' : ''}>
+                        ${isMaxLevel ? 'MAX' : '+'}
+                    </button>
+                </div>
+                <div class="shop-item-cost">${isMaxLevel ? '' : cost + ' COINS'}</div>
             `;
             
             // Add the item to the container
