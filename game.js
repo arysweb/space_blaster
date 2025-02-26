@@ -51,7 +51,7 @@ class Player {
     }
     
     canFire() {
-        return Date.now() - this.lastFireTime > GAME_CONFIG.PLAYER.FIRE_INTERVAL;
+        return Date.now() - this.lastFireTime > GAME_CONFIG.PLAYER.FIRE_RATE;
     }
     
     tryFire() {
@@ -62,9 +62,9 @@ class Player {
         return {
             x: this.x + Math.cos(this.rotation) * this.size,
             y: this.y + Math.sin(this.rotation) * this.size,
-            vx: Math.cos(this.rotation) * GAME_CONFIG.PLAYER.BULLET_SPEED,
-            vy: Math.sin(this.rotation) * GAME_CONFIG.PLAYER.BULLET_SPEED,
-            size: GAME_CONFIG.PLAYER.BULLET_SIZE
+            vx: Math.cos(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
+            vy: Math.sin(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
+            size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE
         };
     }
     
@@ -76,9 +76,9 @@ class Player {
         return {
             x: this.x + Math.cos(this.rotation) * this.size,
             y: this.y + Math.sin(this.rotation) * this.size,
-            vx: Math.cos(this.rotation) * GAME_CONFIG.PLAYER.BULLET_SPEED,
-            vy: Math.sin(this.rotation) * GAME_CONFIG.PLAYER.BULLET_SPEED,
-            size: GAME_CONFIG.PLAYER.BULLET_SIZE
+            vx: Math.cos(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
+            vy: Math.sin(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
+            size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE
         };
     }
 }
@@ -389,7 +389,7 @@ class AssetLoader {
         
         // Explosion image
         this.explosionImage = new Image();
-        this.explosionImage.src = 'img/enemy_defeted.png';
+        this.explosionImage.src = GAME_CONFIG.MYSTERY_BOX.POWERUPS.EXPLOSION_IMAGE;
         this.explosionImage.onerror = () => console.warn('Failed to load explosion image');
     }
     
@@ -465,7 +465,7 @@ class Game {
         this.gameOver = false;
         this.score = 0;
         this.coins = 0;
-        this.lives = GAME_CONFIG.PLAYER.INITIAL_LIVES;
+        this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
         this.gameStartTime = Date.now();
         this.alienSpawnerTimeout = null;
         
@@ -516,7 +516,7 @@ class Game {
         // Reset game state
         this.score = 0;
         this.coins = 0;
-        this.lives = GAME_CONFIG.PLAYER.INITIAL_LIVES;
+        this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
         this.gameOver = false;
         this.aliens = [];
         this.bullets = [];
@@ -756,7 +756,7 @@ class Game {
                 () => {
                     // Add life when heart powerup is collected
                     if (this.lives < GAME_CONFIG.PLAYER.MAX_LIVES) {
-                        this.lives++;
+                        this.lives = Math.min(this.lives + 1, GAME_CONFIG.PLAYER.MAX_LIVES);
                         this.ui.updateLives(this.lives);
                     }
                 }

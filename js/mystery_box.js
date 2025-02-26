@@ -3,12 +3,13 @@ class MysteryBox {
         this.x = x;
         this.y = y;
         this.size = GAME_CONFIG.MYSTERY_BOX.SIZE;
-        this.rotation = 0;
-        this.scale = 1;
-        this.scaleDirection = 1;
         this.coins = GAME_CONFIG.MYSTERY_BOX.COINS;
+        this.points = GAME_CONFIG.MYSTERY_BOX.POINTS;
+        this.rotation = 0;
+        this.scale = 1.0;
+        this.pulseDirection = 1;
         
-        // Add fade-out timer properties
+        // Fade out properties
         this.lifespan = 5000; // 5 seconds
         this.creationTime = Date.now();
         this.opacity = 1.0;
@@ -20,15 +21,15 @@ class MysteryBox {
         this.rotation += GAME_CONFIG.MYSTERY_BOX.ROTATION_SPEED;
         
         // Make the box pulse (scale up and down)
-        this.scale += this.scaleDirection * GAME_CONFIG.MYSTERY_BOX.PULSE_SPEED;
+        this.scale += this.pulseDirection * GAME_CONFIG.MYSTERY_BOX.PULSE_SPEED;
         
         // Reverse direction if reaching scale limits
         if (this.scale > 1.2) {
             this.scale = 1.2;
-            this.scaleDirection = -1;
+            this.pulseDirection = -1;
         } else if (this.scale < 0.8) {
             this.scale = 0.8;
-            this.scaleDirection = 1;
+            this.pulseDirection = 1;
         }
         
         // Check if it's time to start fading out
@@ -98,36 +99,25 @@ class Explosion {
     constructor(x, y, size, powerupType) {
         this.x = x;
         this.y = y;
-        this.size = size * 1.2; // Make explosion slightly larger than the box
+        this.size = size * GAME_CONFIG.MYSTERY_BOX.EXPLOSION.SIZE_MULTIPLIER;
         this.opacity = 0; // Start with 0 opacity and fade in
         this.fadeInComplete = false;
         this.creationTime = Date.now();
-        this.lifespan = 800; // 800ms total lifespan
+        this.lifespan = GAME_CONFIG.MYSTERY_BOX.EXPLOSION.LIFESPAN;
         
         // Text effect properties
         this.powerupType = powerupType || 'damage'; // Default to damage
         this.text = this.getPowerupText(powerupType);
         this.textY = y; // Initial Y position same as explosion
         this.textOpacity = 1.0;
-        this.textSpeed = 0.4; // Slower speed so text stays visible longer
-        this.textLifespan = 1500; // 1.5 seconds for text (longer than explosion)
+        this.textSpeed = GAME_CONFIG.MYSTERY_BOX.EXPLOSION.TEXT_SPEED;
+        this.textLifespan = GAME_CONFIG.MYSTERY_BOX.EXPLOSION.TEXT_LIFESPAN;
     }
     
     getPowerupText(type) {
-        switch(type) {
-            case 'damage':
-                return "DAMAGE +1";
-            case 'coins10':
-                return "COINS +10";
-            case 'coins20':
-                return "COINS +20";
-            case 'coins30':
-                return "COINS +30";
-            case 'heart':
-                return "HEART +1";
-            default:
-                return "DAMAGE +1";
-        }
+        // Find matching powerup type in config
+        const powerupConfig = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === type);
+        return powerupConfig ? powerupConfig.TEXT : GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES[0].TEXT;
     }
     
     update() {
@@ -177,8 +167,8 @@ class Explosion {
         // Draw floating text
         ctx.save();
         ctx.globalAlpha = this.textOpacity;
-        ctx.fillStyle = "#FFFFFF"; // White color for better visibility
-        ctx.font = "bold 18px Arial"; // Larger font size
+        ctx.fillStyle = GAME_CONFIG.MYSTERY_BOX.EXPLOSION.TEXT_COLOR;
+        ctx.font = GAME_CONFIG.MYSTERY_BOX.EXPLOSION.TEXT_FONT;
         ctx.textAlign = "center";
         ctx.fillText(this.text, this.x, this.textY - this.size/2 - 5); // Position text above explosion
         ctx.restore();
@@ -197,16 +187,13 @@ class MysteryBoxManager {
         this.explosions = [];
         this.spawnTimeout = null;
         
-        // Available powerup types and their weights (higher = more common)
-        this.powerupTypes = [
-            { type: 'damage', weight: 40 },
-            { type: 'coins10', weight: 25 },
-            { type: 'coins20', weight: 15 },
-            { type: 'coins30', weight: 10 },
-            { type: 'heart', weight: 10 }
-        ];
+        // Get powerup types from config
+        this.powerupTypes = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.map(p => ({
+            type: p.TYPE,
+            weight: p.WEIGHT
+        }));
         
-        // Total weight for probability calculation
+        // Calculate total weight for probability calculation
         this.totalWeight = this.powerupTypes.reduce((sum, powerup) => sum + powerup.weight, 0);
     }
     
@@ -227,37 +214,32 @@ class MysteryBoxManager {
     }
     
     scheduleMysteryBoxSpawn() {
-        if (this.game.gameOver) return;
-        
         // Clear any existing timeout
         if (this.spawnTimeout) {
             clearTimeout(this.spawnTimeout);
-            this.spawnTimeout = null;
         }
         
-        // Add a delay before the first spawn
-        this.spawnTimeout = setTimeout(() => {
-            // Only spawn a mystery box if there are none on screen
-            if (this.mysteryBoxes.length === 0) {
-                // Spawn a mystery box
-                this.mysteryBoxes.push(MysteryBox.spawn(this.game.canvas.width, this.game.canvas.height));
-            }
+        // Only schedule a new spawn if there are no existing mystery boxes
+        if (this.mysteryBoxes.length === 0) {
+            // Random spawn interval between min and max
+            const spawnInterval = Math.random() * 
+                (GAME_CONFIG.MYSTERY_BOX.MAX_SPAWN_INTERVAL - GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_INTERVAL) + 
+                GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_INTERVAL;
             
-            // Schedule next spawn using the configured values
-            const minTime = GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_TIME;
-            const maxTime = GAME_CONFIG.MYSTERY_BOX.MAX_SPAWN_TIME;
-            const nextSpawnTime = minTime + Math.random() * (maxTime - minTime);
-            this.spawnTimeout = setTimeout(() => this.scheduleMysteryBoxSpawn(), nextSpawnTime);
-        }, GAME_CONFIG.MYSTERY_BOX.INITIAL_SPAWN_DELAY);
+            this.spawnTimeout = setTimeout(() => {
+                this.spawnMysteryBox();
+            }, spawnInterval);
+        }
     }
     
     spawnMysteryBox() {
-        if (this.game.gameOver) return;
-        
-        // Only spawn a mystery box if there are none on screen
-        if (this.mysteryBoxes.length === 0) {
-            const mysteryBox = MysteryBox.spawn(this.game.canvas.width, this.game.canvas.height);
-            this.mysteryBoxes.push(mysteryBox);
+        // Only spawn if there are no existing mystery boxes
+        if (this.mysteryBoxes.length === 0 && !this.game.gameOver) {
+            // Spawn a mystery box
+            this.mysteryBoxes.push(MysteryBox.spawn(this.game.canvas.width, this.game.canvas.height));
+            
+            // Schedule the next spawn
+            this.scheduleMysteryBoxSpawn();
         }
     }
     
@@ -309,13 +291,13 @@ class MysteryBoxManager {
                             // Damage powerup will be implemented later
                             break;
                         case 'coins10':
-                            addCoins(10);
-                            break;
                         case 'coins20':
-                            addCoins(20);
-                            break;
                         case 'coins30':
-                            addCoins(30);
+                            // Find the powerup config to get the coin value
+                            const coinPowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === powerupType);
+                            if (coinPowerup && coinPowerup.VALUE) {
+                                addCoins(coinPowerup.VALUE);
+                            }
                             break;
                         case 'heart':
                             if (addLife) addLife(); // Add life if function is provided

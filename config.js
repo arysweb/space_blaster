@@ -1,27 +1,28 @@
 const GAME_CONFIG = {
     // Player settings
     PLAYER: {
-        SIZE: 15, // Increased from 15
-        FIRE_INTERVAL: 200, // Fire every 200ms
-        BULLET_SPEED: 8,
-        BULLET_SIZE: 10,
-        INITIAL_LIVES: 3,
+        SIZE: 20,
+        FIRE_RATE: 300, // 300ms between shots
+        PROJECTILE_SPEED: 10,
+        PROJECTILE_SIZE: 10,
+        IMAGE: 'img/player/player.png',
         PROJECTILE_IMAGE: 'img/player_projectile.png',
-        IMAGE: 'img/player/player.png'
+        STARTING_LIVES: 3,
+        MAX_LIVES: 6
     },
     
     // Enemy settings
     ENEMY: {
         SPAWN_INTERVAL: 1000, // 1 second (was 2 seconds)
         LARGE: {
-            SIZE: 80,
+            SIZE: 70,
             SPEED: 0.8,
             POINTS: 15,
             COINS: 2,
             IMAGE: 'img/aliens/alien_big.png'
         },
         SMALL: {
-            SIZE: 40,
+            SIZE: 50,
             SPEED: 1,
             POINTS: 10,
             COINS: 1,
@@ -44,14 +45,33 @@ const GAME_CONFIG = {
     
     // Mystery box settings
     MYSTERY_BOX: {
+        SPAWN_INTERVAL: 15000, // 15 seconds
+        MIN_SPAWN_INTERVAL: 10000, // 10 seconds
+        MAX_SPAWN_INTERVAL: 20000, // 20 seconds
         SIZE: 40,
+        POINTS: 0,
+        COINS: 5,
         IMAGE: 'img/mystery_box.png',
-        COINS: 30,
-        MIN_SPAWN_TIME: 15000, // 15 seconds
-        MAX_SPAWN_TIME: 30000, // 30 seconds
-        INITIAL_SPAWN_DELAY: 10000, // 10 seconds delay before first spawn
         ROTATION_SPEED: 0.01,
-        PULSE_SPEED: 0.005
+        PULSE_SPEED: 0.005,
+        EXPLOSION: {
+            SIZE_MULTIPLIER: 1.2,
+            LIFESPAN: 800, // milliseconds
+            TEXT_LIFESPAN: 1500, // milliseconds
+            TEXT_SPEED: 0.4,
+            TEXT_FONT: 'bold 18px Arial',
+            TEXT_COLOR: '#FFFFFF'
+        },
+        POWERUPS: {
+            TYPES: [
+                { TYPE: 'damage', TEXT: 'DAMAGE +1', WEIGHT: 40 },
+                { TYPE: 'coins10', TEXT: 'COINS +10', WEIGHT: 25, VALUE: 10 },
+                { TYPE: 'coins20', TEXT: 'COINS +20', WEIGHT: 15, VALUE: 20 },
+                { TYPE: 'coins30', TEXT: 'COINS +30', WEIGHT: 10, VALUE: 30 },
+                { TYPE: 'heart', TEXT: 'HEART +1', WEIGHT: 10 }
+            ],
+            EXPLOSION_IMAGE: 'img/enemy_defeted.png'
+        }
     },
     
     // Visual settings
