@@ -10,9 +10,14 @@ class AssetLoader {
         this.playerImage.onerror = () => console.warn('Failed to load player image');
         
         // Player projectile image
-        this.playerProjectileImage = new Image();
-        this.playerProjectileImage.src = GAME_CONFIG.PLAYER.PROJECTILE_IMAGE;
-        this.playerProjectileImage.onerror = () => console.warn('Failed to load player projectile image');
+        this.projectileImage = new Image();
+        this.projectileImage.src = GAME_CONFIG.PLAYER.PROJECTILE_IMAGE;
+        this.projectileImage.onerror = () => console.warn('Failed to load player projectile image');
+        
+        // Player crit projectile image
+        this.critProjectileImage = new Image();
+        this.critProjectileImage.src = GAME_CONFIG.PLAYER.CRIT_PROJECTILE_IMAGE;
+        this.critProjectileImage.onerror = () => console.warn('Failed to load player crit projectile image');
         
         // Alien images
         this.alienImages = {
@@ -78,8 +83,14 @@ class AssetLoader {
     }
     
     getPlayerProjectileImage() {
-        return this.playerProjectileImage.complete && this.playerProjectileImage.naturalWidth > 0 
-            ? this.playerProjectileImage 
+        return this.projectileImage.complete && this.projectileImage.naturalWidth > 0 
+            ? this.projectileImage 
+            : this.placeholderImage;
+    }
+    
+    getCritProjectileImage() {
+        return this.critProjectileImage.complete && this.critProjectileImage.naturalWidth > 0 
+            ? this.critProjectileImage 
             : this.placeholderImage;
     }
     

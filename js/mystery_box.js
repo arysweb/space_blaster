@@ -310,6 +310,10 @@ class MysteryBoxManager {
                         case 'heart':
                             if (addLife) addLife(); // Add life if function is provided
                             break;
+                        case 'crit':
+                            // Increase player's critical hit chance
+                            this.game.increaseCritChance();
+                            break;
                     }
                     
                     // Create explosion effect with the powerup type

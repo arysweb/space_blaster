@@ -65,6 +65,37 @@ class CoinEffect {
     }
 }
 
+class CriticalHitEffect {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.alpha = 1;
+        this.scale = 1;
+        this.lifeTime = 0;
+        this.maxLifeTime = 30; // frames
+    }
+    
+    update() {
+        this.lifeTime++;
+        this.alpha = Math.max(0, 1 - (this.lifeTime / this.maxLifeTime));
+        this.scale += 0.1;
+    }
+    
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = '#ff0000';
+        ctx.font = `bold ${16 * this.scale}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('CRIT!', this.x, this.y);
+        ctx.restore();
+    }
+    
+    isDead() {
+        return this.lifeTime >= this.maxLifeTime;
+    }
+}
+
 class GameUI {
     constructor() {
         this.heartImage = new Image();
@@ -76,6 +107,7 @@ class GameUI {
         // Get DOM elements
         this.scoreElement = document.getElementById('score');
         this.coinsElement = document.getElementById('coins');
+        this.critElement = document.getElementById('crit');
         this.livesElement = document.getElementById('lives');
         this.gameOverElement = document.getElementById('gameOver');
         this.finalScoreElement = document.getElementById('finalScore');
@@ -89,6 +121,10 @@ class GameUI {
     
     updateCoins(coins) {
         this.coinsElement.innerText = `COINS: ${coins}`;
+    }
+    
+    updateCritChance(critChance) {
+        this.critElement.innerText = `CRIT: ${critChance}%`;
     }
     
     updateLives(lives) {
@@ -143,14 +179,11 @@ class Game {
         // Initialize empty arrays for game entities
         this.bullets = [];
         this.coinEffects = [];
+        this.criticalHitEffects = [];
         
-        // Initialize alien manager
+        // Initialize alien manager and mystery box manager
         this.alienManager = new AlienManager(this);
-        
-        // Initialize mystery box manager
         this.mysteryBoxManager = new MysteryBoxManager(this);
-        
-        // Initialize cloud manager
         this.cloudManager = new CloudManager(this);
         
         // Initialize UI
@@ -159,19 +192,21 @@ class Game {
         this.ui.updateCoins(this.coins);
         this.ui.updateLives(this.lives);
         
-        // Set up input handling
-        this.setupInputHandling();
-        
         // Create player in center of screen
         this.player = new Player(
             this.canvas.width / 2,
-            this.canvas.height / 2,
-            50
+            this.canvas.height / 2
         );
+        
+        // Now update UI with player properties
+        this.ui.updateCritChance(this.player.critChance);
         
         // Initialize mouse position
         this.mouseX = this.canvas.width / 2;
         this.mouseY = this.canvas.height / 2;
+        
+        // Set up input handling
+        this.setupInputHandling();
         
         // Set up initial clouds
         this.cloudManager.setupInitialClouds();
@@ -193,36 +228,30 @@ class Game {
         this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
         this.gameStartTime = Date.now();
         
+        // Create player in center of screen
+        this.player = new Player(
+            this.canvas.width / 2,
+            this.canvas.height / 2
+        );
+        
+        // Update UI
+        this.ui.updateScore(this.score);
+        this.ui.updateCoins(this.coins);
+        this.ui.updateCritChance(this.player.critChance);
+        this.ui.updateLives(this.lives);
+        this.ui.hideGameOver();
+        
         // Clear game entities
         this.bullets = [];
         this.coinEffects = [];
+        this.criticalHitEffects = [];
         
         // Reset managers
         this.alienManager.reset();
         this.mysteryBoxManager.reset();
         this.cloudManager.reset();
         
-        // Reset UI
-        this.ui.updateScore(this.score);
-        this.ui.updateCoins(this.coins);
-        this.ui.updateLives(this.lives);
-        this.ui.hideGameOver();
-        
-        // Create player in center of screen
-        this.player = new Player(
-            this.canvas.width / 2,
-            this.canvas.height / 2,
-            50
-        );
-        
-        // Initialize mouse position
-        this.mouseX = this.canvas.width / 2;
-        this.mouseY = this.canvas.height / 2;
-        
-        // Set up initial clouds
-        this.cloudManager.setupInitialClouds();
-        
-        // Start spawners
+        // Start the spawners
         this.alienManager.startAlienSpawner();
         this.cloudManager.startCloudSpawner();
         this.mysteryBoxManager.scheduleMysteryBoxSpawn();
@@ -260,13 +289,17 @@ class Game {
         
         const bullet = this.player.tryFire();
         if (bullet) {
+            // Determine if this specific bullet is a critical hit based on player's crit chance
+            const isCriticalHit = Math.random() * 100 < this.player.critChance;
+            
             this.bullets.push(new Bullet(
                 bullet.x,
                 bullet.y,
                 bullet.vx,
                 bullet.vy,
                 bullet.size,
-                bullet.damage
+                bullet.damage,
+                isCriticalHit // Pass whether this specific bullet is a critical hit
             ));
         }
     }
@@ -299,6 +332,16 @@ class Game {
             }
         }
         
+        // Update critical hit effects
+        for (let i = this.criticalHitEffects.length - 1; i >= 0; i--) {
+            this.criticalHitEffects[i].update();
+            
+            // Remove critical hit effects that are done
+            if (this.criticalHitEffects[i].isDead()) {
+                this.criticalHitEffects.splice(i, 1);
+            }
+        }
+        
         // Update mystery box manager
         this.mysteryBoxManager.update();
         
@@ -309,6 +352,10 @@ class Game {
     addCoinEffect(x, y, count) {
         const effects = CoinEffect.createMultiple(x, y, count);
         this.coinEffects.push(...effects);
+    }
+    
+    addCriticalHitEffect(x, y) {
+        this.criticalHitEffects.push(new CriticalHitEffect(x, y));
     }
     
     checkCollisions() {
@@ -323,8 +370,17 @@ class Game {
                 const alien = aliens[j];
                 
                 if (AlienCollisionDetector.checkBulletAlienCollision(bullet, alien)) {
-                    // Reduce alien health by bullet damage
-                    alien.health -= bullet.damage;
+                    // Check if this is a critical hit bullet
+                    if (bullet.isCritical) {
+                        // Critical hit - instantly kill the alien
+                        alien.health = 0;
+                        
+                        // Visual feedback for critical hit
+                        this.addCriticalHitEffect(alien.x, alien.y);
+                    } else {
+                        // Normal hit - reduce alien health by bullet damage
+                        alien.health -= bullet.damage;
+                    }
                     
                     // Remove bullet regardless of whether alien is destroyed
                     this.bullets.splice(i, 1);
@@ -416,12 +472,17 @@ class Game {
         
         // Draw bullets
         for (const bullet of this.bullets) {
-            bullet.draw(this.ctx, this.assets.getPlayerProjectileImage());
+            bullet.draw(this.ctx, this.assets.getPlayerProjectileImage(), this.assets.getCritProjectileImage());
         }
         
         // Draw coin effects
         for (const effect of this.coinEffects) {
             effect.draw(this.ctx, this.assets.getCoinImage());
+        }
+        
+        // Draw critical hit effects
+        for (const effect of this.criticalHitEffects) {
+            effect.draw(this.ctx);
         }
     }
     
@@ -453,6 +514,9 @@ class Game {
         
         // Update coin effects
         this.updateCoinEffects();
+        
+        // Update critical hit effects
+        this.updateCriticalHitEffects();
         
         // Update mystery boxes
         this.mysteryBoxManager.update();
@@ -487,6 +551,9 @@ class Game {
         const vx = Math.cos(angle) * bulletSpeed;
         const vy = Math.sin(angle) * bulletSpeed;
         
+        // Determine if this specific bullet is a critical hit based on player's crit chance
+        const isCriticalHit = Math.random() * 100 < this.player.critChance;
+        
         // Create bullet at player position
         this.bullets.push(new Bullet(
             this.player.x,
@@ -494,7 +561,8 @@ class Game {
             vx,
             vy,
             bulletSize,
-            this.player.damage
+            this.player.damage,
+            isCriticalHit // Pass whether this specific bullet is a critical hit
         ));
     }
     
@@ -522,6 +590,18 @@ class Game {
         }
     }
     
+    updateCriticalHitEffects() {
+        // Update critical hit effects
+        for (let i = this.criticalHitEffects.length - 1; i >= 0; i--) {
+            this.criticalHitEffects[i].update();
+            
+            // Remove critical hit effects that are done
+            if (this.criticalHitEffects[i].isDead()) {
+                this.criticalHitEffects.splice(i, 1);
+            }
+        }
+    }
+    
     addLife() {
         if (this.lives < GAME_CONFIG.PLAYER.MAX_LIVES) {
             this.lives = Math.min(this.lives + 1, GAME_CONFIG.PLAYER.MAX_LIVES);
@@ -532,6 +612,16 @@ class Game {
     increaseDamage() {
         this.player.damage += 1;
         console.log(`Player damage increased to ${this.player.damage}`);
+    }
+    
+    increaseCritChance() {
+        // Find the crit powerup config to get the value
+        const critPowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'crit');
+        if (critPowerup && critPowerup.VALUE) {
+            this.player.critChance += critPowerup.VALUE;
+            console.log(`Player critical chance increased to ${this.player.critChance}%`);
+            this.ui.updateCritChance(this.player.critChance);
+        }
     }
     
     addExplosionEffect(x, y, size, powerupType) {

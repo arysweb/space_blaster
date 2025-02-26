@@ -8,6 +8,7 @@ const GAME_CONFIG = {
         PROJECTILE_DAMAGE: 1, // Default damage per projectile
         IMAGE: 'img/player/player.png',
         PROJECTILE_IMAGE: 'img/player_projectile.png',
+        CRIT_PROJECTILE_IMAGE: 'img/crit_projectile.png',
         STARTING_LIVES: 3,
         MAX_LIVES: 6
     },
@@ -69,11 +70,12 @@ const GAME_CONFIG = {
         },
         POWERUPS: {
             TYPES: [
-                { TYPE: 'damage', TEXT: 'DAMAGE +1', WEIGHT: 40 },
-                { TYPE: 'coins10', TEXT: 'COINS +10', WEIGHT: 25, VALUE: 10 },
+                { TYPE: 'damage', TEXT: 'DAMAGE +1', WEIGHT: 5 },
+                { TYPE: 'coins10', TEXT: 'COINS +10', WEIGHT: 20, VALUE: 10 },
                 { TYPE: 'coins20', TEXT: 'COINS +20', WEIGHT: 15, VALUE: 20 },
                 { TYPE: 'coins30', TEXT: 'COINS +30', WEIGHT: 10, VALUE: 30 },
-                { TYPE: 'heart', TEXT: 'HEART +1', WEIGHT: 10 }
+                { TYPE: 'heart', TEXT: 'HEART +1', WEIGHT: 35 },
+                { TYPE: 'crit', TEXT: 'CRIT +1', WEIGHT: 5, VALUE: 2.5 }
             ],
             EXPLOSION_IMAGE: 'img/enemy_defeted.png'
         }

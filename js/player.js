@@ -6,6 +6,7 @@ class Player {
         this.size = GAME_CONFIG.PLAYER.SIZE;
         this.lastFireTime = 0;
         this.damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE; // Player's current damage level
+        this.critChance = 0; // Percentage chance to instantly kill an alien (0-100)
     }
     
     update(mouseX, mouseY) {
@@ -87,13 +88,14 @@ class Player {
 }
 
 class Bullet {
-    constructor(x, y, vx, vy, size, damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE) {
+    constructor(x, y, vx, vy, size, damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE, isCritical = false) {
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
         this.size = size;
         this.damage = damage;
+        this.isCritical = isCritical;
     }
     
     update() {
@@ -101,7 +103,10 @@ class Bullet {
         this.y += this.vy;
     }
     
-    draw(ctx, image) {
+    draw(ctx, projectileImage, critProjectileImage) {
+        // Determine which image to use based on isCritical flag
+        const image = this.isCritical ? critProjectileImage : projectileImage;
+        
         // Check if image is loaded and not broken
         if (image && image.complete && image.naturalWidth > 0) {
             ctx.drawImage(
@@ -113,7 +118,7 @@ class Bullet {
             );
         } else {
             // Fallback: Draw a simple circle if image is not available
-            ctx.fillStyle = GAME_CONFIG.COLORS.FOREGROUND;
+            ctx.fillStyle = this.isCritical ? '#ff0000' : GAME_CONFIG.COLORS.FOREGROUND;
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
             ctx.fill();
