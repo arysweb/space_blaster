@@ -36,6 +36,12 @@ body {
     z-index: 2;
 }
 
+#score-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 #lives {
     display: flex;
     align-items: center;

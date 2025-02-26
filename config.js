@@ -46,14 +46,16 @@ const GAME_CONFIG = {
     // Mystery box settings
     MYSTERY_BOX: {
         SPAWN_INTERVAL: 15000, // 15 seconds
-        MIN_SPAWN_INTERVAL: 10000, // 10 seconds
-        MAX_SPAWN_INTERVAL: 20000, // 20 seconds
+        MIN_SPAWN_INTERVAL: 25000, // 25 seconds
+        MAX_SPAWN_INTERVAL: 35000, // 35 seconds
         SIZE: 40,
         POINTS: 0,
         COINS: 5,
         IMAGE: 'img/mystery_box.png',
         ROTATION_SPEED: 0.01,
         PULSE_SPEED: 0.005,
+        LIFESPAN: 5000, // 5 seconds
+        FADE_SPEED: 0.05,
         EXPLOSION: {
             SIZE_MULTIPLIER: 1.2,
             LIFESPAN: 800, // milliseconds

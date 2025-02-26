@@ -10,7 +10,7 @@ class MysteryBox {
         this.pulseDirection = 1;
         
         // Fade out properties
-        this.lifespan = 5000; // 5 seconds
+        this.lifespan = GAME_CONFIG.MYSTERY_BOX.LIFESPAN;
         this.creationTime = Date.now();
         this.opacity = 1.0;
         this.isFadingOut = false;
@@ -40,8 +40,8 @@ class MysteryBox {
         
         // Handle fade-out
         if (this.isFadingOut) {
-            // Fade out over 1 second
-            this.opacity = Math.max(0, this.opacity - 0.05);
+            // Fade out using config speed
+            this.opacity = Math.max(0, this.opacity - GAME_CONFIG.MYSTERY_BOX.FADE_SPEED);
         }
     }
     
@@ -217,6 +217,7 @@ class MysteryBoxManager {
         // Clear any existing timeout
         if (this.spawnTimeout) {
             clearTimeout(this.spawnTimeout);
+            this.spawnTimeout = null;
         }
         
         // Only schedule a new spawn if there are no existing mystery boxes
@@ -228,6 +229,7 @@ class MysteryBoxManager {
             
             this.spawnTimeout = setTimeout(() => {
                 this.spawnMysteryBox();
+                this.spawnTimeout = null;
             }, spawnInterval);
         }
     }
@@ -259,6 +261,11 @@ class MysteryBoxManager {
         
         // Remove finished explosions
         this.explosions = this.explosions.filter(explosion => !explosion.isFinished());
+        
+        // Check if we need to schedule a new mystery box spawn
+        if (this.mysteryBoxes.length === 0 && !this.spawnTimeout && !this.game.gameOver) {
+            this.scheduleMysteryBoxSpawn();
+        }
     }
     
     draw(ctx, mysteryBoxImage, explosionImage) {
