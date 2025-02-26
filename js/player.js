@@ -7,6 +7,9 @@ class Player {
         this.lastFireTime = 0;
         this.damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE; // Player's current damage level
         this.critChance = 0; // Percentage chance to instantly kill an alien (0-100)
+        this.isInvincible = false;
+        this.invincibilityTime = 0;
+        this.invincibilityDuration = 2000; // 2 seconds of invincibility after being hit
     }
     
     update(mouseX, mouseY) {
@@ -14,11 +17,28 @@ class Player {
         const dx = mouseX - this.x;
         const dy = mouseY - this.y;
         this.rotation = Math.atan2(dy, dx);
+        
+        // Update invincibility if active
+        if (this.isInvincible) {
+            this.invincibilityTime += 16; // Approximate time per frame (ms)
+            if (this.invincibilityTime >= this.invincibilityDuration) {
+                this.isInvincible = false;
+                this.invincibilityTime = 0;
+            }
+        }
     }
     
     draw(ctx, playerImage) {
         ctx.save();
         ctx.translate(this.x, this.y);
+        
+        // Apply flashing effect if invincible
+        if (this.isInvincible) {
+            // Flash every 100ms
+            if (Math.floor(this.invincibilityTime / 100) % 2 === 0) {
+                ctx.globalAlpha = 0.5;
+            }
+        }
         
         // Draw player image if available
         if (playerImage && playerImage.complete && playerImage.naturalWidth > 0) {
@@ -84,6 +104,11 @@ class Player {
             size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE,
             damage: this.damage
         };
+    }
+    
+    makeInvincible() {
+        this.isInvincible = true;
+        this.invincibilityTime = 0;
     }
 }
 

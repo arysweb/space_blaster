@@ -96,6 +96,37 @@ class CriticalHitEffect {
     }
 }
 
+class DamageEffect {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.alpha = 1;
+        this.scale = 1;
+        this.lifeTime = 0;
+        this.maxLifeTime = 30; // frames
+    }
+    
+    update() {
+        this.lifeTime++;
+        this.alpha = Math.max(0, 1 - (this.lifeTime / this.maxLifeTime));
+        this.scale += 0.1;
+    }
+    
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = '#ff3333';
+        ctx.font = `bold ${20 * this.scale}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('-1 LIFE', this.x, this.y);
+        ctx.restore();
+    }
+    
+    isDead() {
+        return this.lifeTime >= this.maxLifeTime;
+    }
+}
+
 class GameUI {
     constructor() {
         this.heartImage = new Image();
@@ -180,6 +211,7 @@ class Game {
         this.bullets = [];
         this.coinEffects = [];
         this.criticalHitEffects = [];
+        this.damageEffects = [];
         
         // Initialize alien manager and mystery box manager
         this.alienManager = new AlienManager(this);
@@ -245,6 +277,7 @@ class Game {
         this.bullets = [];
         this.coinEffects = [];
         this.criticalHitEffects = [];
+        this.damageEffects = [];
         
         // Reset managers
         this.alienManager.reset();
@@ -307,46 +340,35 @@ class Game {
     updateEntities() {
         // Update player
         if (this.player) {
-            this.player.x = this.canvas.width / 2;
-            this.player.y = this.canvas.height / 2;
             this.player.update(this.mouseX, this.mouseY);
         }
         
+        // Try to fire automatically
+        this.tryPlayerShoot();
+        
+        // Update aliens
+        this.alienManager.updateAliens();
+        
         // Update bullets
-        for (let i = this.bullets.length - 1; i >= 0; i--) {
-            this.bullets[i].update();
-            
-            // Remove bullets that are off-screen
-            if (this.bullets[i].isOffScreen(this.canvas.width, this.canvas.height)) {
-                this.bullets.splice(i, 1);
-            }
-        }
+        this.updateBullets();
         
         // Update coin effects
-        for (let i = this.coinEffects.length - 1; i >= 0; i--) {
-            this.coinEffects[i].update();
-            
-            // Remove coin effects that are done
-            if (this.coinEffects[i].isDead()) {
-                this.coinEffects.splice(i, 1);
-            }
-        }
+        this.updateCoinEffects();
         
         // Update critical hit effects
-        for (let i = this.criticalHitEffects.length - 1; i >= 0; i--) {
-            this.criticalHitEffects[i].update();
-            
-            // Remove critical hit effects that are done
-            if (this.criticalHitEffects[i].isDead()) {
-                this.criticalHitEffects.splice(i, 1);
-            }
-        }
+        this.updateCriticalHitEffects();
         
-        // Update mystery box manager
+        // Update damage effects
+        this.updateDamageEffects();
+        
+        // Update mystery boxes
         this.mysteryBoxManager.update();
         
-        // Update cloud manager
+        // Update clouds
         this.cloudManager.update();
+        
+        // Check for collisions
+        this.checkCollisions();
     }
     
     addCoinEffect(x, y, count) {
@@ -356,6 +378,10 @@ class Game {
     
     addCriticalHitEffect(x, y) {
         this.criticalHitEffects.push(new CriticalHitEffect(x, y));
+    }
+    
+    addDamageEffect(x, y) {
+        this.damageEffects.push(new DamageEffect(x, y));
     }
     
     checkCollisions() {
@@ -433,9 +459,16 @@ class Game {
         if (!this.gameOver) {
             const aliens = this.alienManager.getAliens();
             for (const alien of aliens) {
-                if (AlienCollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
+                if (!this.player.isInvincible && AlienCollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
+                    // Player hit by alien, lose a life
                     this.lives--;
                     this.ui.updateLives(this.lives);
+                    
+                    // Visual feedback for damage
+                    this.addDamageEffect(this.player.x, this.player.y);
+                    
+                    // Make player invincible for a short time to prevent multiple hits
+                    this.player.makeInvincible();
                     
                     if (this.lives <= 0) {
                         this.gameOver = true;
@@ -484,48 +517,22 @@ class Game {
         for (const effect of this.criticalHitEffects) {
             effect.draw(this.ctx);
         }
+        
+        // Draw damage effects
+        for (const effect of this.damageEffects) {
+            effect.draw(this.ctx);
+        }
     }
     
     gameLoop() {
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Skip updates if game is over
+        // Check if game is over
         if (this.gameOver) {
-            // Still draw entities
-            this.drawEntities();
-            
-            // Continue game loop
             requestAnimationFrame(() => this.gameLoop());
             return;
         }
         
-        // Update player
-        this.player.update(this.mouseX, this.mouseY);
-        
-        // Try to fire automatically
-        this.tryPlayerShoot();
-        
-        // Update aliens
-        this.alienManager.updateAliens();
-        
-        // Update bullets
-        this.updateBullets();
-        
-        // Update coin effects
-        this.updateCoinEffects();
-        
-        // Update critical hit effects
-        this.updateCriticalHitEffects();
-        
-        // Update mystery boxes
-        this.mysteryBoxManager.update();
-        
-        // Update clouds
-        this.cloudManager.update();
-        
-        // Check for collisions
-        this.checkCollisions();
+        // Update all game entities
+        this.updateEntities();
         
         // Draw all entities
         this.drawEntities();
@@ -598,6 +605,18 @@ class Game {
             // Remove critical hit effects that are done
             if (this.criticalHitEffects[i].isDead()) {
                 this.criticalHitEffects.splice(i, 1);
+            }
+        }
+    }
+    
+    updateDamageEffects() {
+        // Update damage effects
+        for (let i = this.damageEffects.length - 1; i >= 0; i--) {
+            this.damageEffects[i].update();
+            
+            // Remove damage effects that are done
+            if (this.damageEffects[i].isDead()) {
+                this.damageEffects.splice(i, 1);
             }
         }
     }
