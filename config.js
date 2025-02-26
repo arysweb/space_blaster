@@ -1,7 +1,7 @@
 const GAME_CONFIG = {
     // Player settings
     PLAYER: {
-        SIZE: 15,
+        SIZE: 25, // Increased from 15
         FIRE_INTERVAL: 200, // Fire every 200ms
         BULLET_SPEED: 8,
         BULLET_SIZE: 10,
@@ -38,9 +38,9 @@ const GAME_CONFIG = {
             'img/bg_elements/bg_cloud_2.png',
             'img/bg_elements/bg_cloud_3.png'
         ],
-        CLOUD_SIZES: [350, 280, 190],
+        CLOUD_SIZES: [500, 450, 400], // Increased sizes
         CLOUD_SPEEDS: [0.5, 0.3, 0.2],
-        CLOUD_SPAWN_INTERVAL: 5000,
+        CLOUD_SPAWN_INTERVAL: 15000, // Increased interval to 15 seconds
         MIN_CLOUD_DISTANCE: 350  // Minimum distance between clouds to prevent overlap
     },
     

@@ -17,16 +17,35 @@ class Player {
     draw(ctx, playerImage) {
         ctx.save();
         ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
         
-        // Draw an elongated triangle
-        ctx.fillStyle = GAME_CONFIG.COLORS.FOREGROUND;
-        ctx.beginPath();
-        ctx.moveTo(this.size * 1.5, 0); // Tip (elongated)
-        ctx.lineTo(-this.size / 2, -this.size / 2); // Bottom left
-        ctx.lineTo(-this.size / 2, this.size / 2); // Bottom right
-        ctx.closePath();
-        ctx.fill();
+        // Draw player image if available
+        if (playerImage && playerImage.complete && playerImage.naturalWidth > 0) {
+            const imageSize = this.size * 2; // Make the image a bit larger than the hitbox
+            
+            // First rotate to make the ship point upward (default orientation)
+            // Then rotate based on the player's rotation
+            const angle = this.rotation + Math.PI/2; // Add 90 degrees to make it point up
+            
+            ctx.rotate(angle);
+            
+            ctx.drawImage(
+                playerImage,
+                -imageSize / 2, // Center the image
+                -imageSize / 2,
+                imageSize,
+                imageSize
+            );
+        } else {
+            // Fallback: Draw a triangle if image is not available
+            ctx.rotate(this.rotation);
+            ctx.fillStyle = GAME_CONFIG.COLORS.FOREGROUND;
+            ctx.beginPath();
+            ctx.moveTo(this.size * 1.5, 0); // Tip (elongated)
+            ctx.lineTo(-this.size / 2, -this.size / 2); // Bottom left
+            ctx.lineTo(-this.size / 2, this.size / 2); // Bottom right
+            ctx.closePath();
+            ctx.fill();
+        }
         
         ctx.restore();
     }
@@ -314,6 +333,9 @@ class Cloud {
     draw(ctx, images) {
         const img = images[this.type];
         
+        // Set opacity for clouds
+        ctx.globalAlpha = 0.3; // 30% opacity
+        
         // Check if image is loaded and not broken
         if (img && img.complete && img.naturalWidth > 0) {
             ctx.drawImage(
@@ -337,6 +359,9 @@ class Cloud {
             ctx.arc(this.x - radius * 2, this.y, radius * 0.7, 0, Math.PI * 2);
             ctx.fill();
         }
+        
+        // Reset opacity
+        ctx.globalAlpha = 1.0;
     }
     
     isOffScreen() {
@@ -796,26 +821,24 @@ class Game {
     startCloudSpawner() {
         if (this.gameOver) return;
         
-        // Spawn a cloud
-        const newCloud = Cloud.spawn(this.canvas.width, this.canvas.height);
-        
-        // Check if it overlaps with existing clouds
-        if (!Cloud.checkOverlap(newCloud, this.clouds)) {
+        // Only spawn a new cloud if there are no clouds on screen
+        if (this.clouds.length === 0) {
+            // Spawn a cloud
+            const newCloud = Cloud.spawn(this.canvas.width, this.canvas.height);
             this.clouds.push(newCloud);
         }
         
-        // Schedule next spawn
-        const nextSpawnTime = GAME_CONFIG.BACKGROUND.CLOUD_SPAWN_INTERVAL * (0.8 + Math.random() * 0.4);
+        // Schedule next spawn check, regardless of whether we spawned a cloud or not
+        const nextSpawnTime = 2000; // Check every 2 seconds
         setTimeout(() => this.startCloudSpawner(), nextSpawnTime);
     }
     
     trySpawnCloud() {
         if (this.gameOver) return;
         
-        const newCloud = Cloud.spawn(this.canvas.width, this.canvas.height);
-        
-        // Check for overlap with existing clouds
-        if (!Cloud.checkOverlap(newCloud, this.clouds)) {
+        // Only spawn a new cloud if there are no clouds on screen
+        if (this.clouds.length === 0) {
+            const newCloud = Cloud.spawn(this.canvas.width, this.canvas.height);
             this.clouds.push(newCloud);
         }
     }
@@ -883,6 +906,9 @@ class Game {
             // Remove clouds that are off-screen
             if (this.clouds[i].isOffScreen()) {
                 this.clouds.splice(i, 1);
+                
+                // Spawn a new cloud immediately when one goes off screen
+                this.trySpawnCloud();
             }
         }
         
@@ -1041,12 +1067,9 @@ class Game {
     }
     
     setupInitialClouds() {
-        // Add some initial clouds
-        const cloudCount = 5;
-        for (let i = 0; i < cloudCount; i++) {
-            const x = Math.random() * this.canvas.width;
-            this.clouds.push(Cloud.spawn(this.canvas.width, this.canvas.height, x));
-        }
+        // Add just one initial cloud
+        const x = Math.random() * this.canvas.width;
+        this.clouds.push(Cloud.spawn(this.canvas.width, this.canvas.height, x));
     }
 }
 
