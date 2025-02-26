@@ -5,6 +5,7 @@ class Player {
         this.rotation = 0;
         this.size = GAME_CONFIG.PLAYER.SIZE;
         this.lastFireTime = 0;
+        this.damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE; // Player's current damage level
     }
     
     update(mouseX, mouseY) {
@@ -64,7 +65,8 @@ class Player {
             y: this.y + Math.sin(this.rotation) * this.size,
             vx: Math.cos(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
             vy: Math.sin(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
-            size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE
+            size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE,
+            damage: this.damage
         };
     }
     
@@ -78,18 +80,20 @@ class Player {
             y: this.y + Math.sin(this.rotation) * this.size,
             vx: Math.cos(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
             vy: Math.sin(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
-            size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE
+            size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE,
+            damage: this.damage
         };
     }
 }
 
 class Bullet {
-    constructor(x, y, vx, vy, size) {
+    constructor(x, y, vx, vy, size, damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE) {
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
         this.size = size;
+        this.damage = damage;
     }
     
     update() {
@@ -141,11 +145,13 @@ class Alien {
             this.speed = GAME_CONFIG.ENEMY.LARGE.SPEED;
             this.points = GAME_CONFIG.ENEMY.LARGE.POINTS;
             this.coins = GAME_CONFIG.ENEMY.LARGE.COINS;
+            this.health = GAME_CONFIG.ENEMY.LARGE.HEALTH;
         } else { // Small alien
             this.size = GAME_CONFIG.ENEMY.SMALL.SIZE;
             this.speed = GAME_CONFIG.ENEMY.SMALL.SPEED;
             this.points = GAME_CONFIG.ENEMY.SMALL.POINTS;
             this.coins = GAME_CONFIG.ENEMY.SMALL.COINS;
+            this.health = GAME_CONFIG.ENEMY.SMALL.HEALTH;
         }
         
         // Calculate direction towards center of screen
@@ -593,7 +599,8 @@ class Game {
                 bullet.y,
                 bullet.vx,
                 bullet.vy,
-                bullet.size
+                bullet.size,
+                bullet.damage
             ));
         }
     }
@@ -715,24 +722,32 @@ class Game {
                 const alien = this.aliens[j];
                 
                 if (CollisionDetector.checkBulletAlienCollision(bullet, alien)) {
-                    // Add score
-                    this.score += alien.points;
+                    // Reduce alien health by bullet damage
+                    alien.health -= bullet.damage;
                     
-                    // Add coins
-                    this.coins += alien.coins;
-                    
-                    // Create coin effect
-                    this.addCoinEffect(alien.x, alien.y, alien.coins);
-                    
-                    // Remove alien and bullet
-                    this.aliens.splice(j, 1);
+                    // Remove bullet regardless of whether alien is destroyed
                     this.bullets.splice(i, 1);
-                    
-                    // Update displays
-                    this.ui.updateScore(this.score);
-                    this.ui.updateCoins(this.coins);
-                    
                     bulletHit = true;
+                    
+                    // Check if alien is destroyed
+                    if (alien.health <= 0) {
+                        // Add score
+                        this.score += alien.points;
+                        
+                        // Add coins
+                        this.coins += alien.coins;
+                        
+                        // Create coin effect
+                        this.addCoinEffect(alien.x, alien.y, alien.coins);
+                        
+                        // Remove alien
+                        this.aliens.splice(j, 1);
+                        
+                        // Update displays
+                        this.ui.updateScore(this.score);
+                        this.ui.updateCoins(this.coins);
+                    }
+                    
                     break;
                 }
             }
@@ -751,39 +766,26 @@ class Game {
                     this.coins += coins;
                     this.ui.updateCoins(this.coins);
                 },
-                (x, y, count) => this.addCoinEffect(x, y, count),
-                (x, y, size, powerupType) => this.mysteryBoxManager.createExplosionEffect(x, y, size, powerupType),
-                () => {
-                    // Add life when heart powerup is collected
-                    if (this.lives < GAME_CONFIG.PLAYER.MAX_LIVES) {
-                        this.lives = Math.min(this.lives + 1, GAME_CONFIG.PLAYER.MAX_LIVES);
-                        this.ui.updateLives(this.lives);
-                    }
-                }
+                (x, y, amount) => this.addCoinEffect(x, y, amount),
+                (x, y, size, type) => this.addExplosionEffect(x, y, size, type),
+                () => this.addLife()
             );
         }
         
-        // Check alien collisions with player
+        // Check player collision with aliens
         if (!this.gameOver) {
-            for (let i = this.aliens.length - 1; i >= 0; i--) {
-                const alien = this.aliens[i];
-                
+            for (const alien of this.aliens) {
                 if (CollisionDetector.checkPlayerAlienCollision(this.player, alien)) {
-                    // Player hit by alien - lose a life
                     this.lives--;
-                    
-                    // Update lives display
                     this.ui.updateLives(this.lives);
                     
-                    // Remove the alien
-                    this.aliens.splice(i, 1);
-                    
-                    // Check for game over
                     if (this.lives <= 0) {
                         this.gameOver = true;
-                        this.ui.showGameOver(this.score, this.coins);
+                        this.ui.showGameOver();
                     }
                     
+                    // Reset aliens
+                    this.aliens = [];
                     break;
                 }
             }
@@ -886,7 +888,8 @@ class Game {
             this.player.y,
             vx,
             vy,
-            bulletSize
+            bulletSize,
+            this.player.damage
         ));
     }
     
@@ -951,6 +954,22 @@ class Game {
         }
         
         return { x, y };
+    }
+    
+    addLife() {
+        if (this.lives < GAME_CONFIG.PLAYER.MAX_LIVES) {
+            this.lives = Math.min(this.lives + 1, GAME_CONFIG.PLAYER.MAX_LIVES);
+            this.ui.updateLives(this.lives);
+        }
+    }
+    
+    increaseDamage() {
+        this.player.damage += 1;
+        console.log(`Player damage increased to ${this.player.damage}`);
+    }
+    
+    addExplosionEffect(x, y, size, powerupType) {
+        this.mysteryBoxManager.createExplosionEffect(x, y, size, powerupType);
     }
 }
 

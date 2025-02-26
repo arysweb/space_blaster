@@ -295,7 +295,8 @@ class MysteryBoxManager {
                     // Apply powerup effect based on type
                     switch(powerupType) {
                         case 'damage':
-                            // Damage powerup will be implemented later
+                            // Increase player's damage
+                            this.game.increaseDamage();
                             break;
                         case 'coins10':
                         case 'coins20':

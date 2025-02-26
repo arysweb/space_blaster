@@ -5,6 +5,7 @@ const GAME_CONFIG = {
         FIRE_RATE: 300, // 300ms between shots
         PROJECTILE_SPEED: 10,
         PROJECTILE_SIZE: 10,
+        PROJECTILE_DAMAGE: 1, // Default damage per projectile
         IMAGE: 'img/player/player.png',
         PROJECTILE_IMAGE: 'img/player_projectile.png',
         STARTING_LIVES: 3,
@@ -19,6 +20,7 @@ const GAME_CONFIG = {
             SPEED: 0.8,
             POINTS: 15,
             COINS: 2,
+            HEALTH: 4, // Health points for large aliens
             IMAGE: 'img/aliens/alien_big.png'
         },
         SMALL: {
@@ -26,6 +28,7 @@ const GAME_CONFIG = {
             SPEED: 1,
             POINTS: 10,
             COINS: 1,
+            HEALTH: 2, // Health points for small aliens
             IMAGE: 'img/aliens/alien_small.png'
         }
     },
