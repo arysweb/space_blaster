@@ -75,9 +75,8 @@ class Shop {
                 </div>
                 <div class="shop-item-description">${upgrade.DESCRIPTION}</div>
                 <div class="shop-item-level">Level: ${level}/${upgrade.MAX_LEVEL}</div>
-                <div class="shop-item-cost">${isMaxLevel ? 'MAX LEVEL' : 'Cost: ' + cost + ' coins'}</div>
                 <button class="shop-item-button" data-type="${upgrade.TYPE}" ${isMaxLevel ? 'disabled' : ''}>
-                    ${isMaxLevel ? 'MAXED' : 'UPGRADE'}
+                    ${isMaxLevel ? 'MAXED' : cost + ' COINS'}
                 </button>
             `;
             
