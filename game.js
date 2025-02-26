@@ -386,6 +386,11 @@ class AssetLoader {
         this.mysteryBoxImage = new Image();
         this.mysteryBoxImage.src = GAME_CONFIG.MYSTERY_BOX.IMAGE;
         this.mysteryBoxImage.onerror = () => console.warn('Failed to load mystery box image');
+        
+        // Explosion image
+        this.explosionImage = new Image();
+        this.explosionImage.src = 'img/enemy_defeted.png';
+        this.explosionImage.onerror = () => console.warn('Failed to load explosion image');
     }
     
     getAlienImage(type) {
@@ -434,6 +439,12 @@ class AssetLoader {
     getMysteryBoxImage() {
         return this.mysteryBoxImage.complete && this.mysteryBoxImage.naturalWidth > 0 
             ? this.mysteryBoxImage 
+            : this.placeholderImage;
+    }
+    
+    getExplosionImage() {
+        return this.explosionImage.complete && this.explosionImage.naturalWidth > 0 
+            ? this.explosionImage 
             : this.placeholderImage;
     }
 }
@@ -740,7 +751,15 @@ class Game {
                     this.coins += coins;
                     this.ui.updateCoins(this.coins);
                 },
-                (x, y, count) => this.addCoinEffect(x, y, count)
+                (x, y, count) => this.addCoinEffect(x, y, count),
+                (x, y, size, powerupType) => this.mysteryBoxManager.createExplosionEffect(x, y, size, powerupType),
+                () => {
+                    // Add life when heart powerup is collected
+                    if (this.lives < GAME_CONFIG.PLAYER.MAX_LIVES) {
+                        this.lives++;
+                        this.ui.updateLives(this.lives);
+                    }
+                }
             );
         }
         
@@ -789,7 +808,11 @@ class Game {
         }
         
         // Draw mystery boxes
-        this.mysteryBoxManager.draw(this.ctx, this.assets.getMysteryBoxImage());
+        this.mysteryBoxManager.draw(
+            this.ctx, 
+            this.assets.getMysteryBoxImage(),
+            this.assets.getExplosionImage()
+        );
         
         // Draw player
         if (this.player) {
