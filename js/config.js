@@ -112,16 +112,6 @@ const GAME_CONFIG = {
                 INCREMENT: 1,
                 MAX_LEVEL: 10,
                 ICON: 'img/shop/crit_icon.png'
-            },
-            { 
-                TYPE: 'health', 
-                NAME: 'Max Health', 
-                DESCRIPTION: 'Increase maximum health',
-                BASE_COST: 25,
-                COST_MULTIPLIER: 2,
-                INCREMENT: 1,
-                MAX_LEVEL: 5,
-                ICON: 'img/shop/health_icon.png'
             }
         ],
         BUTTON_TEXT: 'SHOP',

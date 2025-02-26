@@ -343,11 +343,6 @@ class Game {
         // Set up restart button
         this.ui.setupRestartButton(() => this.resetGame());
         
-        // Set up resume button
-        document.getElementById('resumeButton').addEventListener('click', () => {
-            this.resumeGame();
-        });
-        
         // Set up shop from pause button
         document.getElementById('shopFromPauseButton').addEventListener('click', () => {
             // Hide pause overlay
@@ -365,6 +360,9 @@ class Game {
         this.coins = 0;
         this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
         this.gameStartTime = Date.now();
+        
+        // Reset MAX_LIVES to starting value
+        GAME_CONFIG.PLAYER.MAX_LIVES = GAME_CONFIG.PLAYER.STARTING_LIVES;
         
         // Create player in center of screen
         this.player = new Player(
@@ -447,10 +445,16 @@ class Game {
                 }
             }
             
-            // S key - Open shop
+            // S key - Toggle shop
             if (event.key === 's' || event.key === 'S') {
-                if (!this.gameOver && !this.shop.isOpen) {
-                    this.openShop();
+                if (!this.gameOver) {
+                    if (this.shop.isOpen) {
+                        // If shop is open, close it
+                        this.shop.closeShop();
+                    } else {
+                        // Open shop
+                        this.openShop();
+                    }
                 }
             }
         });
@@ -780,6 +784,9 @@ class Game {
         // Find the heart powerup config to get the value
         const heartPowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'heart');
         const livesToAdd = (heartPowerup && heartPowerup.VALUE) ? heartPowerup.VALUE : 1;
+        
+        // Ensure MAX_LIVES is capped at 6
+        GAME_CONFIG.PLAYER.MAX_LIVES = Math.min(GAME_CONFIG.PLAYER.MAX_LIVES, 6);
         
         if (this.lives < GAME_CONFIG.PLAYER.MAX_LIVES) {
             this.lives = Math.min(this.lives + livesToAdd, GAME_CONFIG.PLAYER.MAX_LIVES);

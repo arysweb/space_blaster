@@ -5,8 +5,7 @@ class Shop {
         this.upgradeLevels = {
             damage: 0,
             firerate: 0,
-            crit: 0,
-            health: 0
+            crit: 0
         };
         
         // Get DOM elements
@@ -149,18 +148,6 @@ class Shop {
                 this.game.player.critChance += increment;
                 this.game.ui.updateCritChance(this.game.player.critChance);
                 break;
-                
-            case 'health':
-                // Increase player's maximum health
-                const oldMax = GAME_CONFIG.PLAYER.MAX_LIVES;
-                GAME_CONFIG.PLAYER.MAX_LIVES += increment;
-                
-                // If player is at max health, give them the new max
-                if (this.game.lives === oldMax) {
-                    this.game.lives = GAME_CONFIG.PLAYER.MAX_LIVES;
-                    this.game.ui.updateLives(this.game.lives);
-                }
-                break;
         }
     }
     
@@ -203,12 +190,8 @@ class Shop {
         this.upgradeLevels = {
             damage: 0,
             firerate: 0,
-            crit: 0,
-            health: 0
+            crit: 0
         };
-        
-        // Reset max lives in config
-        GAME_CONFIG.PLAYER.MAX_LIVES = GAME_CONFIG.PLAYER.STARTING_LIVES;
         
         // Close shop if open
         if (this.isOpen) {

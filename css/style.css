@@ -143,6 +143,65 @@ body {
     animation: heartFadeOut 0.5s ease-in-out forwards;
 }
 
+/* Pause Overlay Styles */
+#pauseOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    overflow: auto;
+}
+
+#pauseOverlay .overlay-content {
+    background-color: transparent;
+    margin: 15% auto;
+    padding: 20px;
+    border: none;
+    width: 80%;
+    max-width: 600px;
+    color: white;
+    font-family: 'Press Start 2P', monospace;
+    text-align: center;
+}
+
+#pauseOverlay h2 {
+    color: white;
+    margin-bottom: 30px;
+    font-size: 34px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+#pauseOverlay p {
+    margin-bottom: 30px;
+    color: #aaa;
+    font-size: 14px;
+}
+
+#pauseOverlay .pause-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+#pauseOverlay .shop-button {
+    margin: 0;
+    padding: 15px 30px;
+    font-size: 16px;
+    background-color: rgba(76, 175, 80, 0.7);
+    border: 1px solid rgba(76, 175, 80, 0.9);
+    transition: all 0.3s ease;
+}
+
+#pauseOverlay .shop-button:hover {
+    background-color: rgba(76, 175, 80, 0.9);
+    transform: scale(1.05);
+}
+
 /* Shop Styles */
 .shop-button {
     font-family: 'Press Start 2P', monospace;
