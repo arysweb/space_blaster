@@ -17,9 +17,6 @@ class MysteryBox {
     }
     
     update() {
-        // Rotate the box
-        this.rotation += GAME_CONFIG.MYSTERY_BOX.ROTATION_SPEED;
-        
         // Make the box pulse (scale up and down)
         this.scale += this.pulseDirection * GAME_CONFIG.MYSTERY_BOX.PULSE_SPEED;
         
@@ -48,7 +45,6 @@ class MysteryBox {
     draw(ctx, image) {
         ctx.save();
         ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
         ctx.scale(this.scale, this.scale);
         
         // Apply opacity
@@ -104,6 +100,8 @@ class Explosion {
         this.fadeInComplete = false;
         this.creationTime = Date.now();
         this.lifespan = GAME_CONFIG.MYSTERY_BOX.EXPLOSION.LIFESPAN;
+        this.scale = 0.5; // Start small
+        this.maxScale = 1.0; // Grow to full size
         
         // Text effect properties
         this.powerupType = powerupType || 'damage'; // Default to damage
@@ -124,19 +122,24 @@ class Explosion {
         const elapsedTime = Date.now() - this.creationTime;
         const progress = Math.min(1, elapsedTime / this.lifespan);
         
-        // First 20% of time: fade in
+        // First 20% of time: fade in and grow
         if (progress < 0.2) {
-            this.opacity = progress / 0.2; // Normalize to 0-1
+            // Reduce max opacity to 0.5 (50%)
+            this.opacity = (progress / 0.2) * 0.5; 
+            this.scale = 0.5 + (progress / 0.2) * 0.5; // Scale from 0.5 to 1.0
         } 
-        // Middle 50%: stay fully visible
-        else if (progress < 0.7) {
-            this.opacity = 1.0;
+        // Middle 40%: stay fully visible
+        else if (progress < 0.6) {
+            this.opacity = 0.5; // 50% opacity
+            this.scale = this.maxScale;
         }
-        // Remaining 30%: fade out
+        // Remaining 40%: fade out and grow slightly
         else {
             this.fadeInComplete = true;
-            // Map remaining progress (0.7-1.0) to opacity (1-0)
-            this.opacity = 1 - ((progress - 0.7) / 0.3);
+            // Map remaining progress (0.6-1.0) to opacity (0.5-0)
+            this.opacity = 0.5 - ((progress - 0.6) / 0.4) * 0.5;
+            // Slightly increase scale for "dissipation" effect
+            this.scale = this.maxScale + ((progress - 0.6) / 0.4) * 0.2;
         }
         
         // Update floating text
@@ -153,13 +156,16 @@ class Explosion {
         ctx.save();
         ctx.globalAlpha = this.opacity;
         
+        // Calculate size with scale
+        const currentSize = this.size * this.scale;
+        
         // Draw centered explosion image
         ctx.drawImage(
             image,
-            this.x - this.size / 2,
-            this.y - this.size / 2,
-            this.size,
-            this.size
+            this.x - currentSize / 2,
+            this.y - currentSize / 2,
+            currentSize,
+            currentSize
         );
         
         ctx.restore();
@@ -175,7 +181,7 @@ class Explosion {
     }
     
     isFinished() {
-        return this.fadeInComplete && this.opacity <= 0 && this.textOpacity <= 0;
+        return this.fadeInComplete && this.opacity <= 0.05; // Remove when almost invisible
     }
 }
 

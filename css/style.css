@@ -82,10 +82,8 @@ body {
 }
 
 #gameOver h1 {
-    font-size: 36px;
+    font-size: 42px;
     margin-bottom: 30px;
-    text-shadow: 0 0 10px #ff0000;
-    animation: pulse 2s infinite;
 }
 
 #gameOver p {
@@ -95,26 +93,13 @@ body {
 
 #restartButton {
     margin-top: 30px;
-    padding: 15px 30px;
-    background-color: #ff3366;
-    color: white;
+    padding: 10px;
+    background-color: #fff;
+    color: #000;
     border: none;
     font-family: 'Press Start 2P', cursive;
     font-size: 16px;
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 0 10px rgba(255, 51, 102, 0.7);
-}
-
-#restartButton:hover {
-    background-color: #ff5588;
-    transform: scale(1.05);
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
 }
 
 /* Heart animations */
@@ -190,16 +175,10 @@ body {
 
 #pauseOverlay .shop-button {
     margin: 0;
-    padding: 15px 30px;
-    font-size: 16px;
-    background-color: rgba(76, 175, 80, 0.7);
-    border: 1px solid rgba(76, 175, 80, 0.9);
-    transition: all 0.3s ease;
-}
-
-#pauseOverlay .shop-button:hover {
-    background-color: rgba(76, 175, 80, 0.9);
-    transform: scale(1.05);
+    padding: 10px;
+    font-size: 12px;
+    background-color: #fff;
+    color: #000;
 }
 
 /* Generic Overlay Styles (for both pause and shop) */
@@ -291,7 +270,7 @@ body {
 
 .shop-item-progress-bar {
     height: 100%;
-    background-color: #ff3366;
+    background-color: #fff;
     width: 0%;
 }
 
