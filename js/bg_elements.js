@@ -111,47 +111,56 @@ class CloudManager {
     }
     
     startCloudSpawner() {
-        if (this.game.gameOver) return;
-        
         // Clear any existing timeout
         if (this.cloudSpawnerTimeout) {
             clearTimeout(this.cloudSpawnerTimeout);
             this.cloudSpawnerTimeout = null;
         }
         
+        // Don't spawn if game is over
+        if (this.game.gameOver) return;
+        
         // Attempt to spawn a cloud that doesn't overlap with existing clouds
         let attempts = 0;
         let newCloud = null;
         const maxAttempts = 10;
         
-        while (attempts < maxAttempts) {
-            // Create a potential new cloud
-            newCloud = Cloud.spawn(this.game.canvas.width, this.game.canvas.height);
-            
-            // Check if it overlaps with any existing clouds
-            if (!Cloud.checkOverlap(newCloud, this.clouds)) {
-                // No overlap, we can use this cloud
-                break;
+        // Only try to spawn if the game is not paused
+        if (!this.game.isPaused) {
+            while (attempts < maxAttempts) {
+                // Create a potential new cloud
+                newCloud = Cloud.spawn(this.game.canvas.width, this.game.canvas.height);
+                
+                // Check if it overlaps with any existing clouds
+                if (!Cloud.checkOverlap(newCloud, this.clouds)) {
+                    // No overlap, we can use this cloud
+                    break;
+                }
+                
+                // Try again
+                attempts++;
             }
             
-            // Try again
-            attempts++;
-        }
-        
-        // If we found a valid cloud position, add it
-        if (newCloud && attempts < maxAttempts) {
-            this.clouds.push(newCloud);
+            // If we found a valid cloud position, add it
+            if (newCloud && attempts < maxAttempts) {
+                this.clouds.push(newCloud);
+            }
         }
         
         // Schedule next spawn using the configured interval
-        this.cloudSpawnerTimeout = setTimeout(
-            () => this.startCloudSpawner(), 
-            GAME_CONFIG.BACKGROUND.CLOUD_SPAWN_INTERVAL
-        );
+        this.cloudSpawnerTimeout = setTimeout(() => {
+            // Only continue spawning if the game is not paused
+            if (!this.game.isPaused) {
+                this.startCloudSpawner();
+            } else {
+                // If game is paused, we'll restart the spawner when the game resumes
+                console.log('Cloud spawner paused');
+            }
+        }, GAME_CONFIG.BACKGROUND.CLOUD_SPAWN_INTERVAL);
     }
     
     trySpawnCloud() {
-        if (this.game.gameOver) return;
+        if (this.game.gameOver || this.game.isPaused) return;
         
         // Try to spawn a new cloud that doesn't overlap with existing clouds
         let attempts = 0;
@@ -179,6 +188,11 @@ class CloudManager {
     }
     
     update() {
+        // Don't update if game is paused or over
+        if (this.game.isPaused || this.game.gameOver) {
+            return;
+        }
+        
         // Update clouds
         for (let i = this.clouds.length - 1; i >= 0; i--) {
             this.clouds[i].update();

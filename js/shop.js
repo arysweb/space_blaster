@@ -154,18 +154,22 @@ class Shop {
     openShop() {
         if (this.game.gameOver) return;
         
-        // Pause the game
-        this.game.pauseGame();
+        // Pause the game but don't show pause overlay
+        this.game.isPaused = true;
         
         // Hide pause overlay if it's visible
         document.getElementById('pauseOverlay').style.display = 'none';
+        
+        // Set shop state
+        this.isOpen = true;
         
         // Update shop display
         this.updateShopDisplay();
         
         // Show the shop overlay
         this.shopOverlay.style.display = 'block';
-        this.isOpen = true;
+        
+        console.log('Shop opened');
     }
     
     closeShop() {
@@ -173,8 +177,10 @@ class Shop {
         this.shopOverlay.style.display = 'none';
         this.isOpen = false;
         
-        // Resume the game
-        this.game.resumeGame();
+        // Show the pause overlay since the game is paused
+        document.getElementById('pauseOverlay').style.display = 'block';
+        
+        console.log('Shop closed');
     }
     
     updateShopDisplay() {

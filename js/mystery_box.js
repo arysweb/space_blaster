@@ -213,23 +213,35 @@ class MysteryBoxManager {
             this.spawnTimeout = null;
         }
         
-        // Only schedule a new spawn if there are no existing mystery boxes
-        if (this.mysteryBoxes.length === 0) {
-            // Random spawn interval between min and max
-            const spawnInterval = Math.random() * 
-                (GAME_CONFIG.MYSTERY_BOX.MAX_SPAWN_INTERVAL - GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_INTERVAL) + 
-                GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_INTERVAL;
-            
-            this.spawnTimeout = setTimeout(() => {
-                this.spawnMysteryBox();
-                this.spawnTimeout = null;
-            }, spawnInterval);
-        }
+        // Don't schedule if game is over
+        if (this.game.gameOver) return;
+        
+        // Random spawn interval between min and max
+        const spawnInterval = Math.random() * 
+            (GAME_CONFIG.MYSTERY_BOX.MAX_SPAWN_INTERVAL - GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_INTERVAL) + 
+            GAME_CONFIG.MYSTERY_BOX.MIN_SPAWN_INTERVAL;
+        
+        // Schedule the spawn
+        this.spawnTimeout = setTimeout(() => {
+            // Only spawn if the game is not paused
+            if (!this.game.isPaused) {
+                // Only spawn if there are no existing mystery boxes
+                if (this.mysteryBoxes.length === 0) {
+                    this.spawnMysteryBox();
+                }
+                // Schedule the next spawn
+                this.scheduleMysteryBoxSpawn();
+            } else {
+                // If game is paused, we'll reschedule when the game resumes
+                console.log('Mystery box spawner paused');
+            }
+        }, spawnInterval);
     }
     
     spawnMysteryBox() {
         // Only spawn if there are no existing mystery boxes
-        if (this.mysteryBoxes.length === 0 && !this.game.gameOver) {
+        // and the game is not paused or over
+        if (this.mysteryBoxes.length === 0 && !this.game.isPaused && !this.game.gameOver) {
             // Spawn a mystery box
             this.mysteryBoxes.push(MysteryBox.spawn(this.game.canvas.width, this.game.canvas.height));
             
@@ -239,6 +251,11 @@ class MysteryBoxManager {
     }
     
     update() {
+        // Don't update if game is paused or over
+        if (this.game.isPaused || this.game.gameOver) {
+            return;
+        }
+        
         // Update mystery boxes
         for (const box of this.mysteryBoxes) {
             box.update();

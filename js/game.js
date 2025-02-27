@@ -419,7 +419,6 @@ class Game {
         // Handle mouse click
         this.canvas.addEventListener('mousedown', () => {
             this.isMouseDown = true;
-            this.handleClick();
         });
         
         // Handle mouse release
@@ -439,23 +438,16 @@ class Game {
                 if (this.shop.isOpen) {
                     // If shop is open, close it
                     this.shop.closeShop();
+                    
+                    // Always pause the game when ESC is pressed
+                    this.isPaused = true;
+                    document.getElementById('pauseOverlay').style.display = 'block';
                 } else {
                     // Toggle pause state
                     this.togglePause();
                 }
-            }
-            
-            // S key - Toggle shop
-            if (event.key === 's' || event.key === 'S') {
-                if (!this.gameOver) {
-                    if (this.shop.isOpen) {
-                        // If shop is open, close it
-                        this.shop.closeShop();
-                    } else {
-                        // Open shop
-                        this.openShop();
-                    }
-                }
+                // Prevent default behavior (like browser's ESC functions)
+                event.preventDefault();
             }
         });
         
@@ -484,16 +476,16 @@ class Game {
     }
     
     updateEntities() {
-        // Update player
-        if (this.player) {
-            this.player.update(this.mouseX, this.mouseY);
+        // Don't update if the game is paused or over
+        if (this.isPaused || this.gameOver) {
+            return;
         }
+        
+        // Update player
+        this.player.update(this.mouseX, this.mouseY);
         
         // Try to fire automatically
         this.tryPlayerShoot();
-        
-        // Update aliens
-        this.alienManager.updateAliens();
         
         // Update bullets
         this.updateBullets();
@@ -531,6 +523,11 @@ class Game {
     }
     
     checkCollisions() {
+        // Don't check collisions if the game is paused or over
+        if (this.isPaused || this.gameOver) {
+            return;
+        }
+        
         // Check bullet collisions
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const bullet = this.bullets[i];
@@ -678,19 +675,29 @@ class Game {
     }
     
     gameLoop() {
+        // Clear the canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Always update aliens to handle pause state
+        this.alienManager.updateAliens();
+        
         // Check if game is over
         if (this.gameOver) {
+            // Still draw the entities in their final positions
+            this.drawEntities();
             requestAnimationFrame(() => this.gameLoop());
             return;
         }
         
         // Check if game is paused
         if (this.isPaused) {
+            // When paused, just draw the current state without updating
+            this.drawEntities();
             requestAnimationFrame(() => this.gameLoop());
             return;
         }
         
-        // Update all game entities
+        // Update all other game entities
         this.updateEntities();
         
         // Draw all entities
@@ -833,32 +840,75 @@ class Game {
     pauseGame() {
         if (this.gameOver) return;
         
+        console.log('Game paused');
+        
+        // Set pause state
         this.isPaused = true;
         
-        // Show pause overlay
-        document.getElementById('pauseOverlay').style.display = 'block';
+        // Stop all spawners immediately
+        if (this.alienManager.alienSpawnerTimeout) {
+            clearTimeout(this.alienManager.alienSpawnerTimeout);
+            this.alienManager.alienSpawnerTimeout = null;
+        }
+        
+        if (this.mysteryBoxManager.mysteryBoxTimeout) {
+            clearTimeout(this.mysteryBoxManager.mysteryBoxTimeout);
+            this.mysteryBoxManager.mysteryBoxTimeout = null;
+        }
+        
+        if (this.cloudManager.cloudSpawnerTimeout) {
+            clearTimeout(this.cloudManager.cloudSpawnerTimeout);
+            this.cloudManager.cloudSpawnerTimeout = null;
+        }
+        
+        // Only show pause overlay if shop is not open
+        if (!this.shop.isOpen) {
+            document.getElementById('pauseOverlay').style.display = 'block';
+        }
     }
     
     resumeGame() {
+        if (this.gameOver || this.shop.isOpen) return;
+        
+        console.log('Game resumed');
+        
+        // Set resume state
         this.isPaused = false;
+        
+        // Restart spawners if they were stopped
+        this.alienManager.startAlienSpawner();
+        this.mysteryBoxManager.scheduleMysteryBoxSpawn();
+        this.cloudManager.startCloudSpawner();
         
         // Hide pause overlay
         document.getElementById('pauseOverlay').style.display = 'none';
     }
     
     togglePause() {
-        if (this.gameOver) return;
+        if (this.gameOver || this.shop.isOpen) return;
         
         if (this.isPaused) {
             this.resumeGame();
         } else {
             this.pauseGame();
         }
+        
+        console.log(`Game is now ${this.isPaused ? 'paused' : 'running'}`);
     }
     
     openShop() {
-        // Open shop UI
+        // Store the current pause state before opening the shop
+        this.wasGamePausedBeforeShop = this.isPaused;
+        
+        // Pause the game while the shop is open
+        if (!this.isPaused) {
+            this.pauseGame();
+        }
+        
+        // Open the shop
         this.shop.openShop();
+        
+        console.log('Shop opened, game paused');
     }
 }
 

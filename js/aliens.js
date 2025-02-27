@@ -5,6 +5,10 @@ class Alien {
         this.type = type;
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
+        this.vx = 0;
+        this.vy = 0;
+        this.rotation = 0;
+        this.lastUpdateTime = Date.now();
         
         // Set properties based on alien type
         if (type === 0) { // Large alien
@@ -49,12 +53,21 @@ class Alien {
         this.vy = (dy / distance) * this.speed;
         
         this.rotation = Math.atan2(dy, dx);
-        
-        // Track last update time for smooth movement
-        this.lastUpdateTime = Date.now();
     }
     
-    update(allAliens, playerX, playerY) {
+    update(allAliens, playerX, playerY, isPaused) {
+        // If game is paused, freeze all movement
+        if (isPaused) {
+            // Reset velocities to ensure no movement when unpaused
+            this.vx = 0;
+            this.vy = 0;
+            return;
+        }
+        
+        // Store current position before updating
+        this.lastX = this.x;
+        this.lastY = this.y;
+        
         // Calculate time since last update for smooth movement
         const now = Date.now();
         const deltaTime = now - this.lastUpdateTime;
@@ -262,7 +275,17 @@ class AlienManager {
     }
     
     startAlienSpawner() {
-        if (this.game.gameOver) return;
+        // Clear any existing timeout to prevent multiple spawners
+        if (this.alienSpawnerTimeout) {
+            clearTimeout(this.alienSpawnerTimeout);
+            this.alienSpawnerTimeout = null;
+        }
+        
+        // Don't spawn if game is over or paused
+        if (this.game.gameOver || this.game.isPaused) {
+            console.log('Alien spawner not started - game is over or paused');
+            return;
+        }
         
         // Spawn an alien
         this.spawnAlien();
@@ -282,11 +305,23 @@ class AlienManager {
         const nextSpawnTime = spawnInterval * (0.8 + Math.random() * 0.4);
         
         // Schedule next spawn
-        this.alienSpawnerTimeout = setTimeout(() => this.startAlienSpawner(), nextSpawnTime);
+        this.alienSpawnerTimeout = setTimeout(() => {
+            // Only continue spawning if the game is not paused or over
+            if (!this.game.isPaused && !this.game.gameOver) {
+                this.startAlienSpawner();
+            } else {
+                // If game is paused or over, we'll stop the spawner
+                console.log('Alien spawner stopped - game is paused or over');
+                if (this.alienSpawnerTimeout) {
+                    clearTimeout(this.alienSpawnerTimeout);
+                    this.alienSpawnerTimeout = null;
+                }
+            }
+        }, nextSpawnTime);
     }
     
     spawnAlien() {
-        if (this.game.gameOver) return;
+        if (this.game.gameOver || this.game.isPaused) return;
         
         const spawnPosition = this.getRandomSpawnPosition();
         
@@ -320,12 +355,12 @@ class AlienManager {
     }
     
     updateAliens() {
-        // Update aliens
+        // Update aliens with the game's pause state
         for (let i = this.aliens.length - 1; i >= 0; i--) {
-            this.aliens[i].update(this.aliens, this.game.player.x, this.game.player.y);
+            this.aliens[i].update(this.aliens, this.game.player.x, this.game.player.y, this.game.isPaused);
             
-            // Remove aliens that are off-screen
-            if (this.aliens[i].isOffScreen()) {
+            // Only remove off-screen aliens if the game is not paused
+            if (!this.game.isPaused && this.aliens[i].isOffScreen()) {
                 this.aliens.splice(i, 1);
             }
         }
