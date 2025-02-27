@@ -17,11 +17,11 @@ const GAME_CONFIG = {
     ENEMY: {
         SPAWN_INTERVAL: 1000, // 1 second (was 2 seconds)
         LARGE: {
-            SIZE: 70,
-            SPEED: 0.8,
+            SIZE: 50,
+            SPEED: 1,
             POINTS: 15,
-            COINS: 2,
-            HEALTH: 4, // Health points for large aliens
+            COINS: 1,
+            HEALTH: 2, // Health points for large aliens
             IMAGE: 'img/aliens/alien_big.png'
         },
         SMALL: {
@@ -31,6 +31,22 @@ const GAME_CONFIG = {
             COINS: 1,
             HEALTH: 2, // Health points for small aliens
             IMAGE: 'img/aliens/alien_small.png'
+        },
+        L3: {
+            SIZE: 50,
+            SPEED: 1,
+            POINTS: 20,
+            COINS: 1,
+            HEALTH: 2, // Health points for L3 aliens
+            IMAGE: 'img/aliens/alien_L3.png'
+        },
+        L4: {
+            SIZE: 50,
+            SPEED: 1,
+            POINTS: 25,
+            COINS: 1,
+            HEALTH: 2, // Health points for L4 aliens
+            IMAGE: 'img/aliens/alien_L4.png'
         }
     },
     

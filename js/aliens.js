@@ -1,5 +1,5 @@
 class Alien {
-    constructor(x, y, type, canvasWidth, canvasHeight) {
+    constructor(x, y, type, canvasWidth, canvasHeight, playerX, playerY) {
         this.x = x;
         this.y = y;
         this.type = type;
@@ -14,33 +14,79 @@ class Alien {
             this.coins = GAME_CONFIG.ENEMY.LARGE.COINS;
             this.health = GAME_CONFIG.ENEMY.LARGE.HEALTH;
             this.maxHealth = GAME_CONFIG.ENEMY.LARGE.HEALTH;
-        } else { // Small alien
+        } else if (type === 1) { // Small alien
             this.size = GAME_CONFIG.ENEMY.SMALL.SIZE;
             this.speed = GAME_CONFIG.ENEMY.SMALL.SPEED;
             this.points = GAME_CONFIG.ENEMY.SMALL.POINTS;
             this.coins = GAME_CONFIG.ENEMY.SMALL.COINS;
             this.health = GAME_CONFIG.ENEMY.SMALL.HEALTH;
             this.maxHealth = GAME_CONFIG.ENEMY.SMALL.HEALTH;
+        } else if (type === 2) { // L3 alien
+            this.size = GAME_CONFIG.ENEMY.L3.SIZE;
+            this.speed = GAME_CONFIG.ENEMY.L3.SPEED;
+            this.points = GAME_CONFIG.ENEMY.L3.POINTS;
+            this.coins = GAME_CONFIG.ENEMY.L3.COINS;
+            this.health = GAME_CONFIG.ENEMY.L3.HEALTH;
+            this.maxHealth = GAME_CONFIG.ENEMY.L3.HEALTH;
+        } else if (type === 3) { // L4 alien
+            this.size = GAME_CONFIG.ENEMY.L4.SIZE;
+            this.speed = GAME_CONFIG.ENEMY.L4.SPEED;
+            this.points = GAME_CONFIG.ENEMY.L4.POINTS;
+            this.coins = GAME_CONFIG.ENEMY.L4.COINS;
+            this.health = GAME_CONFIG.ENEMY.L4.HEALTH;
+            this.maxHealth = GAME_CONFIG.ENEMY.L4.HEALTH;
         }
         
-        // Calculate direction towards center of screen
-        const centerX = canvasWidth / 2;
-        const centerY = canvasHeight / 2;
+        // Calculate direction towards player instead of center of screen
+        const targetX = playerX || canvasWidth / 2;
+        const targetY = playerY || canvasHeight / 2;
         
-        const dx = centerX - x;
-        const dy = centerY - y;
+        const dx = targetX - x;
+        const dy = targetY - y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         this.vx = (dx / distance) * this.speed;
         this.vy = (dy / distance) * this.speed;
         
         this.rotation = Math.atan2(dy, dx);
+        
+        // Track last update time for smooth movement
+        this.lastUpdateTime = Date.now();
     }
     
-    update(allAliens) {
+    update(allAliens, playerX, playerY) {
+        // Calculate time since last update for smooth movement
+        const now = Date.now();
+        const deltaTime = now - this.lastUpdateTime;
+        this.lastUpdateTime = now;
+        
+        // If player position is provided, update direction towards player
+        if (playerX !== undefined && playerY !== undefined) {
+            // Calculate direction towards player
+            const dx = playerX - this.x;
+            const dy = playerY - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {  // Avoid division by zero
+                // Gradually adjust velocity towards player (smoother tracking)
+                const adjustmentFactor = 0.05; // Lower = smoother/slower adjustment
+                
+                // Calculate target velocity
+                const targetVx = (dx / distance) * this.speed;
+                const targetVy = (dy / distance) * this.speed;
+                
+                // Gradually adjust current velocity towards target
+                this.vx += (targetVx - this.vx) * adjustmentFactor;
+                this.vy += (targetVy - this.vy) * adjustmentFactor;
+                
+                // Update rotation to face movement direction
+                this.rotation = Math.atan2(this.vy, this.vx);
+            }
+        }
+        
         // Move alien
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * (deltaTime / 16); // Normalize to ~60fps
+        this.y += this.vy * (deltaTime / 16);
         
         // Avoid collisions with other aliens if provided
         if (allAliens) {
@@ -90,7 +136,7 @@ class Alien {
             );
         } else {
             // Fallback: Draw a simple shape if image is not available
-            ctx.fillStyle = this.type === 0 ? '#ff0000' : '#ff5555';
+            ctx.fillStyle = this.type === 0 ? '#ff0000' : this.type === 1 ? '#ff5555' : this.type === 2 ? '#ff00ff' : '#00ffff';
             
             // Draw alien shape
             ctx.beginPath();
@@ -129,9 +175,16 @@ class Alien {
     }
     
     isOffScreen() {
-        // Aliens are never off-screen in this game design
-        // They always move towards the player in the center
-        return false;
+        // Add a buffer to prevent aliens from being removed too early
+        const buffer = this.size * 2;
+        
+        // Check if alien is far outside the canvas boundaries
+        return (
+            this.x < -buffer ||
+            this.x > this.canvasWidth + buffer ||
+            this.y < -buffer ||
+            this.y > this.canvasHeight + buffer
+        );
     }
 }
 
@@ -241,8 +294,8 @@ class AlienManager {
         const gameTime = Date.now() - this.game.gameStartTime;
         let alienType;
         
-        if (gameTime > 30000) { // After 30 seconds, both types possible
-            alienType = Math.random() < 0.3 ? 0 : 1; // 30% chance for large alien
+        if (gameTime > 30000) { // After 30 seconds, all types possible
+            alienType = Math.floor(Math.random() * 4); // 25% chance for each alien type
         } else { // First 30 seconds, only small
             alienType = 1; // Small alien
         }
@@ -252,7 +305,9 @@ class AlienManager {
             spawnPosition.y,
             alienType,
             this.game.canvas.width,
-            this.game.canvas.height
+            this.game.canvas.height,
+            this.game.player.x,
+            this.game.player.y
         );
         
         // Add a small random variation to the alien's velocity
@@ -267,7 +322,7 @@ class AlienManager {
     updateAliens() {
         // Update aliens
         for (let i = this.aliens.length - 1; i >= 0; i--) {
-            this.aliens[i].update(this.aliens);
+            this.aliens[i].update(this.aliens, this.game.player.x, this.game.player.y);
             
             // Remove aliens that are off-screen
             if (this.aliens[i].isOffScreen()) {

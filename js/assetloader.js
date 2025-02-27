@@ -22,13 +22,21 @@ class AssetLoader {
         // Alien images
         this.alienImages = {
             0: new Image(),
-            1: new Image()
+            1: new Image(),
+            2: new Image(),
+            3: new Image()
         };
         this.alienImages[0].src = GAME_CONFIG.ENEMY.LARGE.IMAGE;
         this.alienImages[0].onerror = () => console.warn('Failed to load large alien image');
         
         this.alienImages[1].src = GAME_CONFIG.ENEMY.SMALL.IMAGE;
         this.alienImages[1].onerror = () => console.warn('Failed to load small alien image');
+        
+        this.alienImages[2].src = GAME_CONFIG.ENEMY.L3.IMAGE;
+        this.alienImages[2].onerror = () => console.warn('Failed to load L3 alien image');
+        
+        this.alienImages[3].src = GAME_CONFIG.ENEMY.L4.IMAGE;
+        this.alienImages[3].onerror = () => console.warn('Failed to load L4 alien image');
         
         // Coin image
         this.coinImage = new Image();
