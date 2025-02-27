@@ -451,11 +451,19 @@ class Game {
             canvasRect = this.canvas.getBoundingClientRect();
         });
         
-        // Handle mouse movement
+        // Handle mouse movement with high precision
         this.canvas.addEventListener('mousemove', (event) => {
-            // Use cached canvasRect for better performance
-            this.mouseX = event.clientX - canvasRect.left;
-            this.mouseY = event.clientY - canvasRect.top;
+            // Use client coordinates and canvas scale for pixel-perfect accuracy
+            const scaleX = this.canvas.width / canvasRect.width;
+            const scaleY = this.canvas.height / canvasRect.height;
+            
+            this.mouseX = (event.clientX - canvasRect.left) * scaleX;
+            this.mouseY = (event.clientY - canvasRect.top) * scaleY;
+            
+            // Immediately update player rotation for responsive aiming
+            if (this.player) {
+                this.player.updateRotation(this.mouseX, this.mouseY);
+            }
         });
         
         // Handle mouse click
@@ -542,15 +550,15 @@ class Game {
             return;
         }
         
+        // Try to fire automatically - do this first for best responsiveness
+        this.tryPlayerShoot();
+        
         // Update player at higher frequency
         const now = performance.now();
         if (now - this.lastPlayerUpdate >= this.playerUpdateInterval) {
             this.player.update(this.mouseX, this.mouseY);
             this.lastPlayerUpdate = now;
         }
-        
-        // Try to fire automatically
-        this.tryPlayerShoot();
         
         // Update bullets
         this.updateBullets();

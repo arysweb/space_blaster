@@ -2,7 +2,7 @@ const GAME_CONFIG = {
     // Player settings
     PLAYER: {
         SIZE: 20,
-        FIRE_RATE: 300, // 300ms between shots
+        FIRE_RATE: 300, // Back to 300ms between shots (slower, encourages upgrades)
         PROJECTILE_SPEED: 10,
         PROJECTILE_SIZE: 10,
         PROJECTILE_DAMAGE: 1, // Default damage per projectile

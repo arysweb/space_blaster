@@ -5,20 +5,33 @@ class Player {
         this.game = game;
         this.rotation = 0;
         this.size = GAME_CONFIG.PLAYER.SIZE;
-        this.lastFireTime = 0;
+        this.lastFireTime = performance.now();  // Use performance.now() for precision
         this.damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE; // Player's current damage level
         this.critChance = 0; // Percentage chance to instantly kill an alien (0-100)
         this.fireRate = 0; // Percentage increase in fire rate (0-100)
         this.isInvincible = false;
         this.invincibilityTime = 0;
         this.invincibilityDuration = 2000; // 2 seconds of invincibility after being hit
+        
+        // Store last mouse position for accurate shooting
+        this.lastMouseX = x;
+        this.lastMouseY = y;
     }
     
-    update(mouseX, mouseY) {
+    updateRotation(mouseX, mouseY) {
+        // Store exact mouse coordinates for shooting
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
+        
         // Update rotation to point towards mouse - direct, no smoothing
         const dx = mouseX - this.x;
         const dy = mouseY - this.y;
         this.rotation = Math.atan2(dy, dx);
+    }
+    
+    update(mouseX, mouseY) {
+        // Update rotation using stored coordinates
+        this.updateRotation(mouseX, mouseY);
         
         // Update invincibility if active
         if (this.isInvincible) {
@@ -76,19 +89,19 @@ class Player {
     }
     
     canFire() {
-        // Calculate actual fire rate based on the player's fire rate bonus
+        // Use performance.now() for more precise timing
         const actualFireRate = GAME_CONFIG.PLAYER.FIRE_RATE * (1 - (this.fireRate / 100));
-        return Date.now() - this.lastFireTime > actualFireRate;
+        return performance.now() - this.lastFireTime > actualFireRate;
     }
     
     tryFire() {
         if (!this.canFire()) return null;
         
-        this.lastFireTime = Date.now();
+        this.lastFireTime = performance.now();
         
-        // Calculate exact direction to mouse using the latest mouse position
-        const dx = this.game.mouseX - this.x;
-        const dy = this.game.mouseY - this.y;
+        // Use stored mouse coordinates for perfect accuracy
+        const dx = this.lastMouseX - this.x;
+        const dy = this.lastMouseY - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         // Normalize direction
@@ -108,7 +121,7 @@ class Player {
     fire() {
         if (!this.canFire()) return null;
         
-        this.lastFireTime = Date.now();
+        this.lastFireTime = performance.now();
         
         return {
             x: this.x + Math.cos(this.rotation) * this.size,
