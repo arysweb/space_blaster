@@ -37,13 +37,46 @@
         
         <!-- Shop Overlay -->
         <div id="shopOverlay" class="overlay">
-            <div class="overlay-content">
-                <h2>UPGRADE SHOP</h2>
-                <div class="shop-balance">COINS: <span id="shopCoins">0</span></div>
-                <div id="shopItems" class="shop-items">
-                    <!-- Shop items will be dynamically generated here -->
+            <div class="overlay-content shop-content">
+                <div class="shop-header">
+                    <h1>SPACE SHOOTER</h1>
+                    <h2>Weapons and Upgrades Shop</h2>
+                    <div class="shop-balance">COINS: <span id="shopCoins">0</span></div>
                 </div>
-                <div class="pause-buttons">
+                
+                <div class="shop-columns">
+                    <!-- Left Column - Upgrades -->
+                    <div class="shop-column upgrades-column">
+                        <h3>UPGRADES</h3>
+                        <div class="scrollable-content retro-scrollbar" id="shopUpgrades">
+                            <!-- Upgrades will be dynamically generated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Middle Column - Items -->
+                    <div class="shop-column items-column">
+                        <h3>ITEMS</h3>
+                        <div class="scrollable-content retro-scrollbar" id="shopItems">
+                            <div class="coming-soon">
+                                COMING SOON<br>
+                                Special weapons and power-ups
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Space Chests -->
+                    <div class="shop-column chests-column">
+                        <h3>SPACE CHESTS</h3>
+                        <div class="scrollable-content retro-scrollbar" id="shopChests">
+                            <div class="coming-soon">
+                                COMING SOON<br>
+                                Mystery boxes and rare items
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="shop-footer">
                     <button id="closeShopButton" class="shop-button">CLOSE</button>
                 </div>
             </div>

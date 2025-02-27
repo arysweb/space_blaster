@@ -343,7 +343,7 @@ class Game {
             if (event.key === 'Escape') {
                 if (this.shop.isOpen) {
                     // If shop is open, close it
-                    this.shop.closeShop();
+                    this.shop.close();
                     
                     // Always pause the game when ESC is pressed
                     this.isPaused = true;
@@ -826,18 +826,14 @@ class Game {
     }
     
     openShop() {
-        // Store the current pause state before opening the shop
-        this.wasGamePausedBeforeShop = this.isPaused;
-        
-        // Pause the game while the shop is open
-        if (!this.isPaused) {
-            this.pauseGame();
-        }
-        
-        // Open the shop
-        this.shop.openShop();
-        
-        console.log('Shop opened, game paused');
+        if (this.gameOver) return;
+        this.isPaused = true;
+        document.getElementById('pauseOverlay').style.display = 'none';
+        this.shop.show();
+    }
+    
+    closeShop() {
+        this.shop.hide();
     }
 }
 

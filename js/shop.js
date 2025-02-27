@@ -2,206 +2,135 @@ class Shop {
     constructor(game) {
         this.game = game;
         this.isOpen = false;
-        this.upgradeLevels = {
-            damage: 0,
-            firerate: 0,
-            crit: 0
-        };
-        
-        // Get DOM elements
         this.shopOverlay = document.getElementById('shopOverlay');
-        this.shopButton = document.getElementById('shopButton');
-        this.closeShopButton = document.getElementById('closeShopButton');
-        this.shopCoinsElement = document.getElementById('shopCoins');
-        this.shopItemsContainer = document.getElementById('shopItems');
+        this.shopCoins = document.getElementById('shopCoins');
+        this.shopUpgrades = document.getElementById('shopUpgrades');
+        this.closeButton = document.getElementById('closeShopButton');
         
-        // Set up event listeners
-        this.setupEventListeners();
+        // Setup event listeners
+        this.closeButton.addEventListener('click', () => this.hide());
+        document.getElementById('shopButton').addEventListener('click', () => this.show());
+        document.getElementById('shopFromPauseButton').addEventListener('click', () => {
+            document.getElementById('pauseOverlay').style.display = 'none';
+            this.show();
+        });
         
-        // Generate shop items
-        this.generateShopItems();
+        // Define upgrades
+        this.upgrades = [
+            {
+                id: 'damage',
+                name: 'DAMAGE BOOST',
+                description: 'Increase projectile damage',
+                baseCost: 100,
+                costMultiplier: 1.5,
+                maxLevel: 10
+            },
+            {
+                id: 'firerate',
+                name: 'RAPID FIRE',
+                description: 'Increase firing speed',
+                baseCost: 150,
+                costMultiplier: 1.5,
+                maxLevel: 10
+            },
+            {
+                id: 'crit',
+                name: 'CRITICAL STRIKE',
+                description: 'Chance to deal massive damage',
+                baseCost: 200,
+                costMultiplier: 1.5,
+                maxLevel: 10
+            }
+        ];
     }
     
-    setupEventListeners() {
-        // Open shop when shop button is clicked
-        this.shopButton.addEventListener('click', () => {
-            this.openShop();
-        });
-        
-        // Close shop when close button is clicked
-        this.closeShopButton.addEventListener('click', () => {
-            this.closeShop();
-        });
-        
-        // Close shop when clicking outside the shop content
-        this.shopOverlay.addEventListener('click', (event) => {
-            if (event.target === this.shopOverlay) {
-                this.closeShop();
-            }
-        });
-        
-        // Close shop when ESC key is pressed
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.isOpen) {
-                this.closeShop();
-            }
-        });
+    show() {
+        this.isOpen = true;
+        this.shopOverlay.style.display = 'flex';
+        this.shopCoins.textContent = this.game.coins;
+        this.renderUpgrades();
+        this.game.isPaused = true;
     }
     
-    generateShopItems() {
-        // Clear existing items
-        this.shopItemsContainer.innerHTML = '';
+    hide() {
+        this.isOpen = false;
+        this.shopOverlay.style.display = 'none';
+        this.game.isPaused = false;
+    }
+    
+    renderUpgrades() {
+        this.shopUpgrades.innerHTML = '';
         
-        // Get upgrade options from config
-        const upgrades = GAME_CONFIG.SHOP.UPGRADES;
-        
-        // Create a shop item for each upgrade
-        upgrades.forEach(upgrade => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'shop-item';
+        this.upgrades.forEach(upgrade => {
+            const level = this.getCurrentLevel(upgrade.id);
+            const cost = this.calculateCost(upgrade, level);
+            const isMaxLevel = level >= upgrade.maxLevel;
             
-            // Calculate current level and cost
-            const level = this.upgradeLevels[upgrade.TYPE];
-            const cost = Math.floor(upgrade.BASE_COST * Math.pow(upgrade.COST_MULTIPLIER, level));
-            const isMaxLevel = level >= upgrade.MAX_LEVEL;
+            const upgradeElement = document.createElement('div');
+            upgradeElement.className = `upgrade-item ${isMaxLevel || cost > this.game.coins ? 'disabled' : ''}`;
             
-            // Create item content
-            itemElement.innerHTML = `
-                <div class="shop-item-title">${upgrade.NAME}</div>
-                <div class="shop-item-description">${upgrade.DESCRIPTION}</div>
-                <div class="shop-item-progress-container">
-                    <div class="shop-item-progress">
-                        <div class="shop-item-progress-bar" style="width: ${(level / upgrade.MAX_LEVEL) * 100}%"></div>
-                        <div class="shop-item-progress-text">${level}/${upgrade.MAX_LEVEL}</div>
+            upgradeElement.innerHTML = `
+                <div class="upgrade-info">
+                    <div class="name">${upgrade.name}</div>
+                    <div class="description">${upgrade.description}</div>
+                    <div class="stats">
+                        <span class="level">LEVEL ${level}/${upgrade.maxLevel}</span>
+                        <span class="cost">${isMaxLevel ? 'MAX LEVEL' : `${cost} COINS`}</span>
                     </div>
-                    <button class="shop-item-button" data-type="${upgrade.TYPE}" ${isMaxLevel ? 'disabled' : ''}>
-                        ${isMaxLevel ? 'MAX' : '+'}
-                    </button>
                 </div>
-                <div class="shop-item-cost">${isMaxLevel ? '' : cost + ' COINS'}</div>
+                <button class="buy-button" ${isMaxLevel || cost > this.game.coins ? 'disabled' : ''}>+</button>
             `;
             
-            // Add the item to the container
-            this.shopItemsContainer.appendChild(itemElement);
-            
-            // Add event listener to the upgrade button
-            const upgradeButton = itemElement.querySelector('.shop-item-button');
-            if (!isMaxLevel) {
-                upgradeButton.addEventListener('click', () => {
-                    this.purchaseUpgrade(upgrade.TYPE);
-                });
+            if (!isMaxLevel && cost <= this.game.coins) {
+                const buyButton = upgradeElement.querySelector('.buy-button');
+                buyButton.addEventListener('click', () => this.purchaseUpgrade(upgrade));
             }
+            
+            this.shopUpgrades.appendChild(upgradeElement);
         });
     }
     
-    purchaseUpgrade(type) {
-        // Find the upgrade config
-        const upgrade = GAME_CONFIG.SHOP.UPGRADES.find(u => u.TYPE === type);
-        if (!upgrade) return;
-        
-        // Calculate current level and cost
-        const level = this.upgradeLevels[type];
-        const cost = Math.floor(upgrade.BASE_COST * Math.pow(upgrade.COST_MULTIPLIER, level));
-        
-        // Check if player has enough coins
-        if (this.game.coins >= cost && level < upgrade.MAX_LEVEL) {
-            // Deduct coins
-            this.game.coins -= cost;
-            this.game.ui.updateCoins(this.game.coins);
-            
-            // Increase upgrade level
-            this.upgradeLevels[type]++;
-            
-            // Apply the upgrade effect
-            this.applyUpgradeEffect(type, upgrade.INCREMENT);
-            
-            // Update shop display
-            this.updateShopDisplay();
-            
-            // Play purchase sound (if available)
-            // TODO: Add purchase sound
-            
-            console.log(`Purchased ${upgrade.NAME} upgrade (Level ${this.upgradeLevels[type]})`);
-        } else {
-            console.log(`Cannot afford ${upgrade.NAME} upgrade (Cost: ${cost}, Coins: ${this.game.coins})`);
-            // TODO: Play "cannot afford" sound
-        }
-    }
-    
-    applyUpgradeEffect(type, increment) {
-        switch(type) {
+    getCurrentLevel(upgradeId) {
+        switch (upgradeId) {
             case 'damage':
-                // Increase player's damage
-                this.game.player.damage += increment;
-                this.game.ui.updateDamage(this.game.player.damage);
-                break;
-                
+                return this.game.player.damage;
             case 'firerate':
-                // Increase player's fire rate
-                this.game.player.fireRate += increment;
-                this.game.player.fireRate = Math.min(this.game.player.fireRate, 90); // Cap at 90%
-                this.game.ui.updateFireRate(this.game.player.fireRate);
-                break;
-                
+                return Math.floor(this.game.player.fireRate / 10);
             case 'crit':
-                // Increase player's critical hit chance
-                this.game.player.critChance += increment;
-                this.game.ui.updateCritChance(this.game.player.critChance);
-                break;
+                return Math.floor(this.game.player.critChance / 10);
+            default:
+                return 0;
         }
     }
     
-    openShop() {
-        if (this.game.gameOver) return;
-        
-        // Pause the game but don't show pause overlay
-        this.game.isPaused = true;
-        
-        // Hide pause overlay if it's visible
-        document.getElementById('pauseOverlay').style.display = 'none';
-        
-        // Set shop state
-        this.isOpen = true;
-        
-        // Update shop display
-        this.updateShopDisplay();
-        
-        // Show the shop overlay
-        this.shopOverlay.style.display = 'block';
-        
-        console.log('Shop opened');
+    calculateCost(upgrade, currentLevel) {
+        return Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, currentLevel));
     }
     
-    closeShop() {
-        // Hide the shop overlay
-        this.shopOverlay.style.display = 'none';
-        this.isOpen = false;
+    purchaseUpgrade(upgrade) {
+        const level = this.getCurrentLevel(upgrade.id);
+        const cost = this.calculateCost(upgrade, level);
         
-        // Show the pause overlay since the game is paused
-        document.getElementById('pauseOverlay').style.display = 'block';
-        
-        console.log('Shop closed');
-    }
-    
-    updateShopDisplay() {
-        // Update coins display
-        this.shopCoinsElement.textContent = this.game.coins;
-        
-        // Regenerate shop items to reflect current levels and costs
-        this.generateShopItems();
-    }
-    
-    reset() {
-        // Reset upgrade levels
-        this.upgradeLevels = {
-            damage: 0,
-            firerate: 0,
-            crit: 0
-        };
-        
-        // Close shop if open
-        if (this.isOpen) {
-            this.closeShop();
+        if (this.game.coins >= cost && level < upgrade.maxLevel) {
+            this.game.coins -= cost;
+            
+            switch (upgrade.id) {
+                case 'damage':
+                    this.game.player.damage++;
+                    this.game.ui.updateDamage(this.game.player.damage);
+                    break;
+                case 'firerate':
+                    this.game.player.fireRate += 10;
+                    this.game.ui.updateFireRate(this.game.player.fireRate);
+                    break;
+                case 'crit':
+                    this.game.player.critChance += 10;
+                    this.game.ui.updateCritChance(this.game.player.critChance);
+                    break;
+            }
+            
+            this.shopCoins.textContent = this.game.coins;
+            this.renderUpgrades();
         }
     }
 }
