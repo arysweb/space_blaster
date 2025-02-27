@@ -1,3 +1,4 @@
+// Game configuration
 const GAME_CONFIG = {
     // Player settings
     PLAYER: {
