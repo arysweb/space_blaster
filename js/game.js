@@ -270,21 +270,44 @@ class GameUI {
 
 class Game {
     constructor() {
-        // Get canvas and context
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         
-        // Set up canvas dimensions
-        this.setupCanvas();
-        
-        // Initialize asset loader
-        this.assets = new AssetLoader();
-        
-        // Initialize game state
+        // Game state
         this.gameOver = false;
         this.isPaused = false;
         this.score = 0;
         this.coins = 0;
+        this.isMouseDown = false;
+        this.mouseX = 0;
+        this.mouseY = 0;
+        
+        // Initialize managers and UI
+        this.ui = new GameUI();
+        this.assets = new AssetLoader();
+        this.shop = new Shop(this);
+        
+        // Set up high frequency player updates
+        this.lastPlayerUpdate = 0;
+        this.playerUpdateInterval = 1000 / 144; // 144 Hz updates for player rotation
+        
+        // Initialize game objects after canvas setup
+        this.setupCanvas();
+        this.setupInputHandling();
+        this.setupPauseHandler();
+        this.initializeGameObjects();
+        
+        // Initialize UI
+        this.ui.updateScore(this.score);
+        this.ui.updateCoins(this.coins);
+        this.ui.updateLives(this.lives);
+        
+        // Start game loop
+        this.gameLoop();
+    }
+    
+    initializeGameObjects() {
+        // Initialize game state
         this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
         this.gameStartTime = Date.now();
         
@@ -294,23 +317,13 @@ class Game {
         this.criticalHitEffects = [];
         this.damageEffects = [];
         
-        // Initialize alien manager and mystery box manager
+        // Initialize managers
         this.alienManager = new AlienManager(this);
         this.mysteryBoxManager = new MysteryBoxManager(this);
         this.cloudManager = new CloudManager(this);
-        this.shop = new Shop(this);
-        
-        // Initialize UI
-        this.ui = new GameUI();
-        this.ui.updateScore(this.score);
-        this.ui.updateCoins(this.coins);
-        this.ui.updateLives(this.lives);
         
         // Create player in center of screen
-        this.player = new Player(
-            this.canvas.width / 2,
-            this.canvas.height / 2
-        );
+        this.player = new Player(this.canvas.width / 2, this.canvas.height / 2, this);
         
         // Now update UI with player properties
         this.ui.updateCritChance(this.player.critChance);
@@ -331,9 +344,6 @@ class Game {
         this.alienManager.startAlienSpawner();
         this.cloudManager.startCloudSpawner();
         this.mysteryBoxManager.scheduleMysteryBoxSpawn();
-        
-        // Start game loop
-        this.gameLoop();
         
         // Set up shop button
         document.getElementById('shopButton').addEventListener('click', () => {
@@ -367,7 +377,8 @@ class Game {
         // Create player in center of screen
         this.player = new Player(
             this.canvas.width / 2,
-            this.canvas.height / 2
+            this.canvas.height / 2,
+            this
         );
         
         // Update UI
@@ -397,6 +408,31 @@ class Game {
         this.mysteryBoxManager.scheduleMysteryBoxSpawn();
     }
     
+    startGame() {
+        console.log('Game started');
+        
+        // Reset game state
+        this.gameOver = false;
+        this.isPaused = false;
+        this.score = 0;
+        this.coins = 0;
+        
+        // Reset UI
+        this.ui.updateScore(this.score);
+        this.ui.updateCoins(this.coins);
+        document.getElementById('gameOverOverlay').style.display = 'none';
+        document.getElementById('pauseOverlay').style.display = 'none';
+        
+        // Reset alien manager's game start time and available types
+        this.alienManager.gameStartTime = Date.now();
+        this.alienManager.availableTypes = [1]; // Reset to only small aliens
+        
+        // Start spawners
+        this.alienManager.startAlienSpawner();
+        this.mysteryBoxManager.scheduleMysteryBoxSpawn();
+        this.cloudManager.startCloudSpawner();
+    }
+    
     setupCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
@@ -409,11 +445,17 @@ class Game {
     }
     
     setupInputHandling() {
+        // Get canvas rect once and update it on resize
+        let canvasRect = this.canvas.getBoundingClientRect();
+        window.addEventListener('resize', () => {
+            canvasRect = this.canvas.getBoundingClientRect();
+        });
+        
         // Handle mouse movement
         this.canvas.addEventListener('mousemove', (event) => {
-            const rect = this.canvas.getBoundingClientRect();
-            this.mouseX = event.clientX - rect.left;
-            this.mouseY = event.clientY - rect.top;
+            // Use cached canvasRect for better performance
+            this.mouseX = event.clientX - canvasRect.left;
+            this.mouseY = event.clientY - canvasRect.top;
         });
         
         // Handle mouse click
@@ -455,6 +497,25 @@ class Game {
         window.addEventListener('resize', () => this.setupCanvas());
     }
     
+    setupPauseHandler() {
+        // Handle pause with ESC key
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                if (this.gameOver) return;
+                
+                this.isPaused = !this.isPaused;
+                
+                // Update UI
+                document.getElementById('pauseOverlay').style.display = this.isPaused ? 'flex' : 'none';
+                
+                // Reset velocities when pausing
+                if (this.isPaused) {
+                    this.alienManager.resetAlienVelocities();
+                }
+            }
+        });
+    }
+    
     tryPlayerShoot() {
         if (this.gameOver || this.isPaused || !this.player) return;
         
@@ -481,8 +542,12 @@ class Game {
             return;
         }
         
-        // Update player
-        this.player.update(this.mouseX, this.mouseY);
+        // Update player at higher frequency
+        const now = performance.now();
+        if (now - this.lastPlayerUpdate >= this.playerUpdateInterval) {
+            this.player.update(this.mouseX, this.mouseY);
+            this.lastPlayerUpdate = now;
+        }
         
         // Try to fire automatically
         this.tryPlayerShoot();

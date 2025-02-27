@@ -270,8 +270,39 @@ class AlienManager {
     constructor(game) {
         this.game = game;
         this.aliens = [];
-        this.alienSpawnerTimeout = null;
         this.explosions = [];
+        this.alienSpawnerTimeout = null;
+        this.gameStartTime = Date.now();
+        this.availableTypes = [1]; // Start with small aliens (type 1)
+    }
+    
+    updateAvailableTypes() {
+        const elapsedSeconds = (Date.now() - this.gameStartTime) / 1000;
+        
+        // Add new alien types as time progresses
+        if (elapsedSeconds >= 30 && !this.availableTypes.includes(0)) {
+            this.availableTypes.push(0); // Add big aliens
+            console.log('Big aliens now joining the fight!');
+        }
+        if (elapsedSeconds >= 60 && !this.availableTypes.includes(2)) {
+            this.availableTypes.push(2); // Add L3 aliens
+            console.log('L3 aliens now joining the fight!');
+        }
+        if (elapsedSeconds >= 90 && !this.availableTypes.includes(3)) {
+            this.availableTypes.push(3); // Add L4 aliens
+            console.log('L4 aliens now joining the fight!');
+        }
+    }
+    
+    getCurrentAlienType() {
+        if (this.game.gameOver || this.game.isPaused) return 1; // small alien
+        
+        // Update available types first
+        this.updateAvailableTypes();
+        
+        // Randomly select from available types
+        const randomIndex = Math.floor(Math.random() * this.availableTypes.length);
+        return this.availableTypes[randomIndex];
     }
     
     startAlienSpawner() {
@@ -290,19 +321,8 @@ class AlienManager {
         // Spawn an alien
         this.spawnAlien();
         
-        // Calculate game time in milliseconds
-        const gameTime = Date.now() - this.game.gameStartTime;
-        
-        // Calculate spawn interval based on game time (gets shorter as game progresses)
-        let spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
-        
-        // Reduce spawn interval as game progresses (minimum 300ms)
-        if (gameTime > 60000) { // After 1 minute
-            spawnInterval = Math.max(300, spawnInterval - (gameTime / 60000) * 200);
-        }
-        
-        // Add some randomness to the spawn interval (±20%)
-        const nextSpawnTime = spawnInterval * (0.8 + Math.random() * 0.4);
+        // Use fixed spawn interval from config
+        const spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
         
         // Schedule next spawn
         this.alienSpawnerTimeout = setTimeout(() => {
@@ -317,27 +337,45 @@ class AlienManager {
                     this.alienSpawnerTimeout = null;
                 }
             }
-        }, nextSpawnTime);
+        }, spawnInterval);
     }
     
     spawnAlien() {
-        if (this.game.gameOver || this.game.isPaused) return;
-        
-        const spawnPosition = this.getRandomSpawnPosition();
-        
-        // Determine alien type based on game time
-        const gameTime = Date.now() - this.game.gameStartTime;
-        let alienType;
-        
-        if (gameTime > 30000) { // After 30 seconds, all types possible
-            alienType = Math.floor(Math.random() * 4); // 25% chance for each alien type
-        } else { // First 30 seconds, only small
-            alienType = 1; // Small alien
+        // Don't spawn if game is over or paused
+        if (this.game.gameOver || this.game.isPaused) {
+            return;
         }
         
+        // Choose a random alien type from available types
+        const alienType = this.getCurrentAlienType();
+        
+        // Choose a random spawn position along the edges
+        let x, y;
+        const spawnEdge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+        
+        switch(spawnEdge) {
+            case 0: // Top edge
+                x = Math.random() * this.game.canvas.width;
+                y = -50;
+                break;
+            case 1: // Right edge
+                x = this.game.canvas.width + 50;
+                y = Math.random() * this.game.canvas.height;
+                break;
+            case 2: // Bottom edge
+                x = Math.random() * this.game.canvas.width;
+                y = this.game.canvas.height + 50;
+                break;
+            case 3: // Left edge
+                x = -50;
+                y = Math.random() * this.game.canvas.height;
+                break;
+        }
+        
+        // Create and add the alien
         const alien = new Alien(
-            spawnPosition.x,
-            spawnPosition.y,
+            x,
+            y,
             alienType,
             this.game.canvas.width,
             this.game.canvas.height,
@@ -373,6 +411,14 @@ class AlienManager {
             if (this.explosions[i].isFinished()) {
                 this.explosions.splice(i, 1);
             }
+        }
+    }
+    
+    resetAlienVelocities() {
+        // Reset all alien velocities to 0 when game is paused
+        for (const alien of this.aliens) {
+            alien.vx = 0;
+            alien.vy = 0;
         }
     }
     

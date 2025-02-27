@@ -1,7 +1,8 @@
 class Player {
-    constructor(x, y) {
+    constructor(x, y, game) {
         this.x = x;
         this.y = y;
+        this.game = game;
         this.rotation = 0;
         this.size = GAME_CONFIG.PLAYER.SIZE;
         this.lastFireTime = 0;
@@ -14,7 +15,7 @@ class Player {
     }
     
     update(mouseX, mouseY) {
-        // Update rotation to point towards mouse
+        // Update rotation to point towards mouse - direct, no smoothing
         const dx = mouseX - this.x;
         const dy = mouseY - this.y;
         this.rotation = Math.atan2(dy, dx);
@@ -85,11 +86,20 @@ class Player {
         
         this.lastFireTime = Date.now();
         
+        // Calculate exact direction to mouse using the latest mouse position
+        const dx = this.game.mouseX - this.x;
+        const dy = this.game.mouseY - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Normalize direction
+        const dirX = dx / distance;
+        const dirY = dy / distance;
+        
         return {
-            x: this.x + Math.cos(this.rotation) * this.size,
-            y: this.y + Math.sin(this.rotation) * this.size,
-            vx: Math.cos(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
-            vy: Math.sin(this.rotation) * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
+            x: this.x, // Spawn bullet at player center
+            y: this.y,
+            vx: dirX * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
+            vy: dirY * GAME_CONFIG.PLAYER.PROJECTILE_SPEED,
             size: GAME_CONFIG.PLAYER.PROJECTILE_SIZE,
             damage: this.damage
         };
