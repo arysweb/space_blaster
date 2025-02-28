@@ -223,31 +223,20 @@ class MysteryBoxManager {
         
         // Schedule the spawn
         this.spawnTimeout = setTimeout(() => {
-            // Only spawn if the game is not paused
-            if (!this.game.isPaused) {
-                // Only spawn if there are no existing mystery boxes
-                if (this.mysteryBoxes.length === 0) {
-                    this.spawnMysteryBox();
-                }
-                // Schedule the next spawn
+            // Only spawn if the game is not paused and there are no existing boxes
+            if (!this.game.isPaused && !this.game.gameOver && this.mysteryBoxes.length === 0) {
+                this.spawnMysteryBox();
+            }
+            // Always schedule next spawn unless game is over
+            if (!this.game.gameOver) {
                 this.scheduleMysteryBoxSpawn();
-            } else {
-                // If game is paused, we'll reschedule when the game resumes
-                console.log('Mystery box spawner paused');
             }
         }, spawnInterval);
     }
     
     spawnMysteryBox() {
-        // Only spawn if there are no existing mystery boxes
-        // and the game is not paused or over
-        if (this.mysteryBoxes.length === 0 && !this.game.isPaused && !this.game.gameOver) {
-            // Spawn a mystery box
-            this.mysteryBoxes.push(MysteryBox.spawn(this.game.canvas.width, this.game.canvas.height));
-            
-            // Schedule the next spawn
-            this.scheduleMysteryBoxSpawn();
-        }
+        // Spawn a mystery box
+        this.mysteryBoxes.push(MysteryBox.spawn(this.game.canvas.width, this.game.canvas.height));
     }
     
     update() {
@@ -272,7 +261,7 @@ class MysteryBoxManager {
         // Remove finished explosions
         this.explosions = this.explosions.filter(explosion => !explosion.isFinished());
         
-        // Check if we need to schedule a new mystery box spawn
+        // Schedule next spawn if needed
         if (this.mysteryBoxes.length === 0 && !this.spawnTimeout && !this.game.gameOver) {
             this.scheduleMysteryBoxSpawn();
         }
@@ -351,14 +340,15 @@ class MysteryBoxManager {
     }
     
     reset() {
-        // Clear any existing timeout
+        // Clear all mystery boxes and explosions
+        this.mysteryBoxes = [];
+        this.explosions = [];
+        
+        // Clear spawn timer
         if (this.spawnTimeout) {
             clearTimeout(this.spawnTimeout);
             this.spawnTimeout = null;
         }
-        
-        this.mysteryBoxes = [];
-        this.explosions = [];
     }
     
     getMysteryBoxes() {

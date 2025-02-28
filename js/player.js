@@ -6,9 +6,9 @@ class Player {
         this.rotation = 0;
         this.size = GAME_CONFIG.PLAYER.SIZE;
         this.lastFireTime = performance.now();  // Use performance.now() for precision
-        this.damage = GAME_CONFIG.PLAYER.PROJECTILE_DAMAGE; // Player's current damage level
-        this.critChance = 0; // Percentage chance to instantly kill an alien (0-100)
-        this.fireRate = 0; // Percentage increase in fire rate (0-100)
+        this.damage = 1; // Must be 1 for base damage
+        this.critChance = 0; // Start with 0% crit chance
+        this.fireRate = 0; // Start with 0% fire rate bonus
         this.isInvincible = false;
         this.invincibilityTime = 0;
         this.invincibilityDuration = 2000; // 2 seconds of invincibility after being hit
@@ -90,7 +90,8 @@ class Player {
     
     canFire() {
         // Use performance.now() for more precise timing
-        const actualFireRate = GAME_CONFIG.PLAYER.FIRE_RATE * (1 - (this.fireRate / 100));
+        const fireRateMultiplier = 1 - (this.fireRate / 100); // Convert percentage to multiplier
+        const actualFireRate = GAME_CONFIG.PLAYER.FIRE_RATE * fireRateMultiplier; // Slower base fire rate, gets faster with upgrades
         return performance.now() - this.lastFireTime > actualFireRate;
     }
     

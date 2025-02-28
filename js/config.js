@@ -27,10 +27,10 @@ const GAME_CONFIG = {
         },
         SMALL: {
             SIZE: 50,
-            SPEED: 1,
+            SPEED: 1.5,
             POINTS: 10,
             COINS: 1,
-            HEALTH: 2, // Health points for small aliens
+            HEALTH: 1, // Health points for small aliens
             IMAGE: 'img/aliens/alien_small.png'
         },
         L3: {
@@ -66,16 +66,16 @@ const GAME_CONFIG = {
     
     // Mystery box settings
     MYSTERY_BOX: {
-        SPAWN_INTERVAL: 5000, // 15 seconds
-        MIN_SPAWN_INTERVAL: 5000, // 25 seconds
-        MAX_SPAWN_INTERVAL: 10000, // 35 seconds
-        SIZE: 40,
+        SPAWN_INTERVAL: 5000, // 5 seconds
+        MIN_SPAWN_INTERVAL: 5000, // 8 seconds
+        MAX_SPAWN_INTERVAL: 15000, // 15 seconds
+        SIZE: 50,
         POINTS: 0,
         COINS: 5,
         IMAGE: 'img/mystery_box.png',
         ROTATION_SPEED: 0.01,
         PULSE_SPEED: 0.005,
-        LIFESPAN: 5000, // 5 seconds
+        LIFESPAN: 8000, // 8 seconds
         FADE_SPEED: 0.05,
         EXPLOSION: {
             SIZE_MULTIPLIER: 1.2,
@@ -90,50 +90,11 @@ const GAME_CONFIG = {
                 { TYPE: 'damage', TEXT: 'DAMAGE +1', VALUE: 1 },
                 { TYPE: 'coins10', TEXT: 'COINS +10', VALUE: 10 },
                 { TYPE: 'heart', TEXT: 'HEART +1', VALUE: 1 },
-                { TYPE: 'crit', TEXT: 'CRIT +1', VALUE: 2.5 },
-                { TYPE: 'firerate', TEXT: 'FIRE RATE +1', VALUE: 10 }
+                { TYPE: 'crit', TEXT: 'CRIT +1', VALUE: 0.9 },
+                { TYPE: 'firerate', TEXT: 'FIRE RATE +1', VALUE: 1.1 }
             ],
             EXPLOSION_IMAGE: 'img/enemy_defeted.png'
         }
-    },
-    
-    // Shop settings
-    SHOP: {
-        UPGRADES: [
-            { 
-                TYPE: 'damage', 
-                NAME: 'Damage', 
-                DESCRIPTION: 'Increase projectile damage',
-                BASE_COST: 10,
-                COST_MULTIPLIER: 1.5,
-                INCREMENT: 1,
-                MAX_LEVEL: 10,
-                ICON: 'img/shop/damage_icon.png'
-            },
-            { 
-                TYPE: 'firerate', 
-                NAME: 'Fire Rate', 
-                DESCRIPTION: 'Increase firing speed',
-                BASE_COST: 15,
-                COST_MULTIPLIER: 1.5,
-                INCREMENT: 5,
-                MAX_LEVEL: 10,
-                ICON: 'img/shop/firerate_icon.png'
-            },
-            { 
-                TYPE: 'crit', 
-                NAME: 'Critical Chance', 
-                DESCRIPTION: 'Increase critical hit chance',
-                BASE_COST: 20,
-                COST_MULTIPLIER: 1.7,
-                INCREMENT: 1,
-                MAX_LEVEL: 10,
-                ICON: 'img/shop/crit_icon.png'
-            }
-        ],
-        BUTTON_TEXT: 'SHOP',
-        TITLE: 'UPGRADE SHOP',
-        CLOSE_TEXT: 'CLOSE'
     },
     
     // Visual settings

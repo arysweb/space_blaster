@@ -15,33 +15,8 @@ class Shop {
             this.show();
         });
         
-        // Define upgrades
-        this.upgrades = [
-            {
-                id: 'damage',
-                name: 'DAMAGE BOOST',
-                description: 'Increase projectile damage',
-                baseCost: 100,
-                costMultiplier: 1.5,
-                maxLevel: 10
-            },
-            {
-                id: 'firerate',
-                name: 'RAPID FIRE',
-                description: 'Increase firing speed',
-                baseCost: 150,
-                costMultiplier: 1.5,
-                maxLevel: 10
-            },
-            {
-                id: 'crit',
-                name: 'CRITICAL STRIKE',
-                description: 'Chance to deal massive damage',
-                baseCost: 200,
-                costMultiplier: 1.5,
-                maxLevel: 10
-            }
-        ];
+        // Use upgrades from config
+        this.upgrades = SHOP_UPGRADES;
     }
     
     show() {
@@ -56,6 +31,27 @@ class Shop {
         this.isOpen = false;
         this.shopOverlay.style.display = 'none';
         this.game.isPaused = false;
+    }
+    
+    reset() {
+        // Reset shop state
+        this.isOpen = false;
+        this.shopOverlay.style.display = 'none';
+        
+        // Reset upgrades to initial state
+        this.upgrades.forEach(upgrade => {
+            switch (upgrade.id) {
+                case 'damage':
+                    this.game.player.damage = 1; // Base damage must be 1
+                    break;
+                case 'firerate':
+                    this.game.player.fireRate = 0; // 0% fire rate bonus
+                    break;
+                case 'crit':
+                    this.game.player.critChance = 0; // 0% crit chance
+                    break;
+            }
+        });
     }
     
     renderUpgrades() {
@@ -93,7 +89,7 @@ class Shop {
     getCurrentLevel(upgradeId) {
         switch (upgradeId) {
             case 'damage':
-                return this.game.player.damage;
+                return this.game.player.damage - 1;
             case 'firerate':
                 return Math.floor(this.game.player.fireRate / 10);
             case 'crit':

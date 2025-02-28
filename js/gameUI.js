@@ -81,10 +81,10 @@ class GameUI {
             // Preserve the label part (everything up to and including the last colon)
             const labelPart = currentText.substring(0, colonIndex + 1);
             // Update only the value part
-            this.damageElement.innerText = `${labelPart} ${damage}`;
+            this.damageElement.innerText = `${labelPart} ${damage}%`;
         } else {
             // Fallback if no colon is found
-            this.damageElement.innerText = `DAMAGE: ${damage}`;
+            this.damageElement.innerText = `DAMAGE: ${damage}%`;
         }
     }
     
@@ -101,7 +101,7 @@ class GameUI {
             this.fireRateElement.innerText = `${labelPart} ${fireRate}%`;
         } else {
             // Fallback if no colon is found
-            this.fireRateElement.innerText = `FIRE RATE::: ${fireRate}%`;
+            this.fireRateElement.innerText = `FIRE RATE: ${fireRate}%`;
         }
     }
     

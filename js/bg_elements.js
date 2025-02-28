@@ -223,13 +223,14 @@ class CloudManager {
     }
     
     reset() {
-        // Clear any existing timeout
+        // Clear all clouds
+        this.clouds = [];
+        
+        // Clear spawn timer
         if (this.cloudSpawnerTimeout) {
             clearTimeout(this.cloudSpawnerTimeout);
             this.cloudSpawnerTimeout = null;
         }
-        
-        this.clouds = [];
     }
     
     getClouds() {

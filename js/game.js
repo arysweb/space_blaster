@@ -185,9 +185,9 @@ class Game {
         this.player = new Player(this.canvas.width / 2, this.canvas.height / 2, this);
         
         // Now update UI with player properties
-        this.ui.updateCritChance(10); // default crit chance
+        this.ui.updateCritChance(0); // Start with no crit chance
         this.ui.updateDamage(1); // default damage
-        this.ui.updateFireRate(50); // default fire rate
+        this.ui.updateFireRate(0); // default fire rate (no bonus)
         
         // Initialize mouse position
         this.mouseX = this.canvas.width / 2;
@@ -230,12 +230,34 @@ class Game {
         this.lives = 3; // default lives
         this.gameStartTime = Date.now();
         
-        // Create player in center of screen
+        // Reset all entities
+        this.bullets = [];
+        this.coinEffects = [];
+        this.criticalHitEffects = [];
+        this.damageEffects = [];
+        
+        // Create player in center of screen with default stats
         this.player = new Player(
             this.canvas.width / 2,
             this.canvas.height / 2,
             this
         );
+        
+        // Reset player stats to initial values
+        this.player.damage = 1; // Must be 1 for base damage
+        this.player.fireRate = 0; // Start with 0% fire rate bonus
+        this.player.critChance = 0; // Start with 0% crit chance
+        
+        // Reset all managers
+        this.alienManager.reset();
+        this.mysteryBoxManager.reset();
+        this.cloudManager.reset();
+        this.shop.reset();
+        
+        // Hide all overlays
+        document.getElementById('gameOver').style.display = 'none';
+        document.getElementById('shopOverlay').style.display = 'none';
+        document.getElementById('pauseOverlay').style.display = 'none';
         
         // Update UI
         this.ui.updateScore(this.score);
@@ -246,19 +268,7 @@ class Game {
         this.ui.updateLives(this.lives);
         this.ui.hideGameOver();
         
-        // Clear game entities
-        this.bullets = [];
-        this.coinEffects = [];
-        this.criticalHitEffects = [];
-        this.damageEffects = [];
-        
-        // Reset managers
-        this.alienManager.reset();
-        this.mysteryBoxManager.reset();
-        this.cloudManager.reset();
-        this.shop.reset();
-        
-        // Start the spawners
+        // Restart game systems
         this.alienManager.startAlienSpawner();
         this.cloudManager.startCloudSpawner();
         this.mysteryBoxManager.scheduleMysteryBoxSpawn();
@@ -276,7 +286,7 @@ class Game {
         // Reset UI
         this.ui.updateScore(this.score);
         this.ui.updateCoins(this.coins);
-        document.getElementById('gameOverOverlay').style.display = 'none';
+        document.getElementById('gameOver').style.display = 'none';
         document.getElementById('pauseOverlay').style.display = 'none';
         
         // Reset alien manager's game start time and available types
@@ -736,9 +746,12 @@ class Game {
         const damagePowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'damage');
         const increaseAmount = (damagePowerup && damagePowerup.VALUE) ? damagePowerup.VALUE : 1;
         
+        // Update player damage (every 1 damage point = 10%)
         this.player.damage += increaseAmount;
-        console.log(`Player damage increased to ${this.player.damage}`);
-        this.ui.updateDamage(this.player.damage);
+        const damagePercent = (this.player.damage - 1) * 10;
+        
+        console.log(`Player damage increased to ${damagePercent}%`);
+        this.ui.updateDamage(damagePercent);
     }
     
     increaseCritChance() {
@@ -834,6 +847,9 @@ class Game {
     
     closeShop() {
         this.shop.hide();
+        this.isPaused = false;
+        // Resume the game and restart alien spawning
+        this.alienManager.startAlienSpawner();
     }
 }
 
