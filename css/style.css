@@ -559,3 +559,76 @@ body {
 .reward-notification.fade-out {
     animation: fadeOut 0.5s ease-in-out forwards;
 }
+
+/* Tutorial Overlay Styles */
+#tutorial-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+}
+
+#tutorial-container {
+    background-color: #1a1a2e;
+    border: 3px solid #16213e;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 600px;
+    text-align: center;
+    color: #e94560;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+#tutorial-content h2 {
+    margin-bottom: 20px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.2em;
+}
+
+#tutorial-content p {
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.tutorial-btn {
+    background-color: #0f3460;
+    color: #e94560;
+    border: 2px solid #e94560;
+    padding: 10px 20px;
+    margin: 0 10px;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tutorial-btn:hover {
+    background-color: #e94560;
+    color: #0f3460;
+}
+
+.tutorial-highlight {
+    outline: 3px solid #e94560;
+    outline-offset: 5px;
+    transition: outline 0.3s ease;
+}
+
+/* Fade Overlay Styles */
+#fade-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    opacity: 1;
+    z-index: 9999;
+    pointer-events: none;
+    transition: opacity 3s ease-in-out;
+}

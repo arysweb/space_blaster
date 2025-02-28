@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div id="fade-overlay"></div>
     <div id="game-container">
         <div id="info-bar">
             <div class="column">
@@ -127,6 +128,27 @@
         </div>
     </div>
     
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeOverlay = document.getElementById('fade-overlay');
+            
+            // Ensure the overlay is visible immediately
+            fadeOverlay.style.opacity = 1;
+            fadeOverlay.style.display = 'block';
+            
+            // Fade out after a short delay
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    fadeOverlay.style.opacity = 0;
+                    
+                    // Completely remove after fade out
+                    setTimeout(() => {
+                        fadeOverlay.style.display = 'none';
+                    }, 3000);
+                }, 500);
+            });
+        });
+    </script>
     <script src="js/config.js"></script>
     <script src="js/mystery_box.js"></script>
     <script src="js/bg_elements.js"></script>
