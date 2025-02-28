@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Blaster</title>
+    <link rel="icon" href="img/player_projectile.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="info-bar">
+            <div class="column">
+                <div id="score">SCORE: 0</div>
+            </div>
+            <div class="column">
+                <div id="coins">COINS: 0</div>
+                <button id="shopButton" class="shop-button">SHOP</button>
+            </div>
+            <div class="column">
+                <div id="lives"></div>
+                <div id="crit">CRIT: 0/10</div>
+                <div id="damage">DAMAGE: 1/10</div>
+                <div id="fire-rate">FIRE RATE: 0/10</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameOver">
+            <h1>YOU DIED</h1>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Coins Collected: <span id="finalCoins">0</span></p>
+            <button id="restartButton">RESTART</button>
+        </div>
+        
+        <!-- Shop Overlay -->
+        <div id="shopOverlay" class="overlay">
+            <div class="overlay-content shop-content">
+                <div class="shop-header">
+                    <h1>SPACE BLASTER</h1>
+                    <h2>Weapons and Upgrades Shop</h2>
+                    <div class="shop-balance">COINS: <span id="shopCoins">0</span></div>
+                </div>
+                
+                <div class="shop-columns">
+                    <!-- Left Column - Upgrades -->
+                    <div class="shop-column upgrades-column">
+                        <h3>UPGRADES</h3>
+                        <div class="scrollable-content retro-scrollbar" id="shopUpgrades">
+                            <!-- Upgrades will be dynamically generated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Middle Column - Items -->
+                    <div class="shop-column items-column">
+                        <h3>ITEMS</h3>
+                        <div class="scrollable-content retro-scrollbar" id="shopItems">
+                            <div class="coming-soon">
+                                COMING SOON<br>
+                                Special weapons and power-ups
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Space Chests -->
+                    <div class="shop-column chests-column">
+                        <h3>SPACE CHESTS</h3>
+                        <div class="scrollable-content retro-scrollbar" id="shopChests">
+                            <div class="coming-soon">
+                                COMING SOON<br>
+                                Mystery boxes and rare items
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-row">
+                    <div class="video-content">
+                        <h3>NEED MORE COINS?</h3>
+                        <p>Whatch a video and get rewarded 50 coins!</p>
+                    </div>
+                    <div class="video-button">
+                        <button id="watchVideoBtn" class="shop-button">WATCH VIDEO</button>
+                    </div>
+                </div>
+
+                <div class="shop-footer">
+                    <button id="closeShopButton" class="shop-button">CLOSE</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="overlay">
+            <div class="overlay-content">
+                <h2>GAME PAUSED</h2>
+                <p>Press ESC to resume</p>
+                <div class="pause-buttons">
+                    <button id="shopFromPauseButton" class="shop-button">SHOP</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Video Modal -->
+        <div id="videoModal" class="overlay">
+            <div class="overlay-content video-modal-content">
+                <div class="progress-container">
+                    <div id="videoProgress" class="progress-bar"></div>
+                </div>
+                <div class="video-modal-body">
+                    <div id="youtubePlayer"></div>
+                </div>
+                <div class="video-modal-footer">
+                    <button id="closeVideoButton" class="shop-button">CLOSE</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reward Notification -->
+        <div id="rewardNotification" class="reward-notification">
+            <div class="reward-content">
+                <h3>REWARD EARNED!</h3>
+                <p>+50 COINS</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/config.js"></script>
+    <script src="js/mystery_box.js"></script>
+    <script src="js/bg_elements.js"></script>
+    <script src="js/video-modal.js"></script>
+    <script src="js/assetloader.js"></script>
+    <script src="js/aliens.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/shop_config.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/gameUI.js"></script>
+    <script src="js/player_stats.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

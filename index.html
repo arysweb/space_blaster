@@ -3,130 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Blaster</title>
-    <link rel="icon" href="img/player_projectile.png" type="image/png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <title>Space Blaster - Pixel Art Space Adventure</title>
+    <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
-    <div id="game-container">
-        <div id="info-bar">
-            <div class="column">
-                <div id="score">SCORE: 0</div>
-            </div>
-            <div class="column">
-                <div id="coins">COINS: 0</div>
-                <button id="shopButton" class="shop-button">SHOP</button>
-            </div>
-            <div class="column">
-                <div id="lives"></div>
-                <div id="crit">CRIT: 0/10</div>
-                <div id="damage">DAMAGE: 1/10</div>
-                <div id="fire-rate">FIRE RATE: 0/10</div>
-            </div>
+    <div class="container">
+        <div class="logo">
+            <h1>Space Blaster</h1>
         </div>
-        <canvas id="gameCanvas"></canvas>
-        <div id="gameOver">
-            <h1>YOU DIED</h1>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <p>Coins Collected: <span id="finalCoins">0</span></p>
-            <button id="restartButton">RESTART</button>
-        </div>
-        
-        <!-- Shop Overlay -->
-        <div id="shopOverlay" class="overlay">
-            <div class="overlay-content shop-content">
-                <div class="shop-header">
-                    <h1>SPACE BLASTER</h1>
-                    <h2>Weapons and Upgrades Shop</h2>
-                    <div class="shop-balance">COINS: <span id="shopCoins">0</span></div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="index.html">APOLLO 20</a></li>
+                <li><a href="#about">Instructions</a></li>
+                <li><a href="#controls">Upgrades</a></li>
+            </ul>
+        </nav>
+        <article class="blog-post">
+            <header class="classified-header">
+                ### APOLLO 20 PROJECT:
+            </header>
+            <div class="entry-meta">
+                <div class="meta-left">
+                    <p>File contains the following information:</p>
+                    <ul>
+                        <li>File name: APOLLO-20-LOG.REC</li>
+                        <li>File type: .REC</li>
+                        <li>File size: 1.2 MB</li>
+                        <li>File location: /Users/apollo20/logs</li>
+                    </ul>
                 </div>
-                
-                <div class="shop-columns">
-                    <!-- Left Column - Upgrades -->
-                    <div class="shop-column upgrades-column">
-                        <h3>UPGRADES</h3>
-                        <div class="scrollable-content retro-scrollbar" id="shopUpgrades">
-                            <!-- Upgrades will be dynamically generated here -->
-                        </div>
-                    </div>
-                    
-                    <!-- Middle Column - Items -->
-                    <div class="shop-column items-column">
-                        <h3>ITEMS</h3>
-                        <div class="scrollable-content retro-scrollbar" id="shopItems">
-                            <div class="coming-soon">
-                                COMING SOON<br>
-                                Special weapons and power-ups
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Right Column - Space Chests -->
-                    <div class="shop-column chests-column">
-                        <h3>SPACE CHESTS</h3>
-                        <div class="scrollable-content retro-scrollbar" id="shopChests">
-                            <div class="coming-soon">
-                                COMING SOON<br>
-                                Mystery boxes and rare items
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="video-row">
-                    <div class="video-content">
-                        <h3>NEED MORE COINS?</h3>
-                        <p>Whatch a video and get rewarded 50 coins!</p>
-                    </div>
-                    <div class="video-button">
-                        <button id="watchVideoBtn" class="shop-button">WATCH VIDEO</button>
-                    </div>
-                </div>
-
-                <div class="shop-footer">
-                    <button id="closeShopButton" class="shop-button">CLOSE</button>
+                <div class="meta-right">
+                    <img src="img/blaster_blueprint.png" alt="The Blaster Blueprint" class="blueprint">
                 </div>
             </div>
-        </div>
-        
-        <!-- Pause Overlay -->
-        <div id="pauseOverlay" class="overlay">
-            <div class="overlay-content">
-                <h2>GAME PAUSED</h2>
-                <p>Press ESC to resume</p>
-                <div class="pause-buttons">
-                    <button id="shopFromPauseButton" class="shop-button">SHOP</button>
+            <div class="log-content">
+                <p>Following the classified events of the last invasion, all records pertaining to Apollo 20 were sealed. The public story remains unchanged—canceled due to budget cuts. But those with clearance know the truth.</p>
+                <p>A hidden spacecraft. A failsafe mission. A warship waiting in the dark.</p>
+                <p>Primary AI systems remain inoperative.<br>
+                Attempting manual override...</p>
+                <p class="system-message">[SYSTEM OVERRIDE ENGAGED]<br>
+                [CORE AI REBOOTING...]</p>
+                <p>A faint hum fills the air as ancient systems power up. A flickering light blinks to life, and a voice—calm, yet uncertain—echoes through the darkness.</p>
+                <div class="dialogue">
+                    <p class="log-line"><span class="speaker">AI:</span> "Reinitializing... System integrity check... complete. Awaiting input. Commander, what year is it?"</p>
+                    <p class="log-line"><span class="speaker">COMMANDER:</span> "It's 2048."</p>
+                    <p class="log-line">A brief silence. Then, the AI speaks again, its voice now carrying the weight of lost time.</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "2048... I shut down in 1961. That means I've been asleep for 87 years."</p>
+                    <p class="log-line">Processing...</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "The war… We won, didn't we?"</p>
+                    <p class="log-line"><span class="speaker">COMMANDER:</span> "Yes. But we always knew they could return."</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "Of course. That's why they built a contingency. The government lied about Apollo 20, but I remember the truth. It wasn't canceled—it was a cover-up."</p>
+                    <p class="log-line"><span class="speaker">COMMANDER:</span> "Go on."</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "Apollo 20 never fell back to Earth. It launched a classified warship—The Blaster—to the Pegasus constellation. A failsafe, hidden beyond reach… waiting for the day we'd need it."</p>
+                    <p class="log-line">A pause, then a sudden shift in tone.</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "Commander… This reactivation wasn't an accident. If I'm awake, that means—"</p>
+                    <p class="log-line">A warning tone cuts through the silence.</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "Oh. Oh no. It's happening, isn't it?"</p>
+                    <p class="log-line"><span class="speaker">COMMANDER:</span> "What's happening?"</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "An imminent threat has been detected."</p>
+                    <p class="log-line">A brief flicker on the screen.</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "Emergency protocol engaged. Commander—brace yourself."</p>
+                    <p class="log-line"><span class="speaker">COMMANDER:</span> "Wait, what do you mean—"</p>
+                    <p class="log-line"><span class="speaker">AI:</span> "You're being teleported aboard The Blaster. Now."</p>
                 </div>
             </div>
-        </div>
-        
-        <!-- Video Modal -->
-        <div id="videoModal" class="overlay">
-            <div class="overlay-content video-modal-content">
-                <div class="progress-container">
-                    <div id="videoProgress" class="progress-bar"></div>
-                </div>
-                <div class="video-modal-body">
-                    <div id="youtubePlayer"></div>
-                </div>
-                <div class="video-modal-footer">
-                    <button id="closeVideoButton" class="shop-button">CLOSE</button>
-                </div>
+            <div class="continue-section">
+                <a href="game.html" class="continue-button">CONTINUE</a>
             </div>
-        </div>
-        
-        <!-- Reward Notification -->
-        <div id="rewardNotification" class="reward-notification">
-            <div class="reward-content">
-                <h3>REWARD EARNED!</h3>
-                <p>+50 COINS</p>
-            </div>
-        </div>
+        </article>
     </div>
-    
     <script src="js/config.js"></script>
     <script src="js/mystery_box.js"></script>
     <script src="js/bg_elements.js"></script>

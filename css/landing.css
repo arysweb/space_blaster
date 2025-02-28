@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.logo {
+    text-align: center;
+    padding: 40px 0;
+    text-transform: uppercase;
+}
+
+.logo h1 {
+    font-size: 32px;
+    margin: 0;
+    color: #ffffff;
+}
+
+.main-nav {
+    border: 1px solid #ffffff;
+    padding: 10px 0;
+    margin: 20px 0;
+}
+
+.main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.main-nav li {
+    display: inline-block;
+    margin: 0 20px;
+}
+
+.main-nav a {
+    color: #ffffff;
+    text-decoration: underline;
+    font-size: 11px;
+}
+
+.blog-post {
+    margin: 40px 0;
+    text-align: left;
+}
+
+.classified-header {
+    font-family: 'Press Start 2P', cursive;
+    border-bottom: 1px solid #ffffff;
+    padding-bottom: 10px;
+    margin: 60px 0 20px 0;
+    font-size: 18px;
+    letter-spacing: 1px;
+}
+
+.entry-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    margin: 30px 0;
+}
+
+.meta-left {
+    flex: 1;
+    font-family: monospace;
+    font-size: 18px;
+}
+
+.meta-right {
+    flex: 1;
+    text-align: right;
+    max-width: 50%;
+}
+
+.blueprint {
+    width: 50%;
+    border: 1px solid #ffffff;
+}
+
+.entry-meta p {
+    margin: 5px 0;
+}
+
+.redacted {
+    letter-spacing: 2px;
+}
+
+.log-content {
+    font-family: monospace;
+    font-size: 18px;
+    line-height: 1.6;
+    margin: 30px 0;
+}
+
+.log-content p {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.system-message {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 18px;
+    line-height: 1.8;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.dialogue {
+    margin: 30px 0;
+}
+
+.log-line {
+    font-family: monospace;
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+.speaker {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+}
+
+.ai-dialogue {
+    font-family: monospace;
+    font-size: 16px;
+    line-height: 1.8;
+    margin: 20px 0;
+}
+
+.commander-dialogue {
+    font-family: monospace;
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+.narrative {
+    font-family: monospace;
+    font-size: 16px;
+    font-style: italic;
+    color: #888888;
+    margin: 25px 0;
+}
+
+.continue-section {
+    text-align: center;
+    margin: 60px 0;
+}
+
+.continue-button {
+    font-family: 'Press Start 2P', cursive;
+    display: inline-block;
+    padding: 20px 40px;
+    font-size: 24px;
+    color: #000000;
+    background: #ffffff;
+    text-decoration: none;
+    border: 4px solid #ffffff;
+    transition: all 0.3s ease;
+}
+
+.continue-button:hover {
+    color: #ffffff;
+    background: #000000;
+}
