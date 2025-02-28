@@ -54,7 +54,7 @@ class GameUI {
         }
     }
     
-    updateCritChance(critChance) {
+    updateCritChance(level) {
         // Get the current label text
         const currentText = this.critElement.innerText;
         // Find the position of the last colon
@@ -63,15 +63,15 @@ class GameUI {
         if (colonIndex !== -1) {
             // Preserve the label part (everything up to and including the last colon)
             const labelPart = currentText.substring(0, colonIndex + 1);
-            // Update only the value part
-            this.critElement.innerText = `${labelPart} ${critChance}%`;
+            // Update only the value part - display as level/10
+            this.critElement.innerText = `${labelPart} ${level}/10`;
         } else {
             // Fallback if no colon is found
-            this.critElement.innerText = `CRIT: ${critChance}%`;
+            this.critElement.innerText = `CRIT: ${level}/10`;
         }
     }
     
-    updateDamage(damage) {
+    updateDamage(level) {
         // Get the current label text
         const currentText = this.damageElement.innerText;
         // Find the position of the last colon
@@ -80,15 +80,15 @@ class GameUI {
         if (colonIndex !== -1) {
             // Preserve the label part (everything up to and including the last colon)
             const labelPart = currentText.substring(0, colonIndex + 1);
-            // Update only the value part
-            this.damageElement.innerText = `${labelPart} ${damage}%`;
+            // Update only the value part - display as level/10
+            this.damageElement.innerText = `${labelPart} ${level}/10`;
         } else {
             // Fallback if no colon is found
-            this.damageElement.innerText = `DAMAGE: ${damage}%`;
+            this.damageElement.innerText = `DAMAGE: ${level}/10`;
         }
     }
     
-    updateFireRate(fireRate) {
+    updateFireRate(level) {
         // Get the current label text
         const currentText = this.fireRateElement.innerText;
         // Find the position of the last colon
@@ -97,11 +97,11 @@ class GameUI {
         if (colonIndex !== -1) {
             // Preserve the label part (everything up to and including the last colon)
             const labelPart = currentText.substring(0, colonIndex + 1);
-            // Update only the value part
-            this.fireRateElement.innerText = `${labelPart} ${fireRate}%`;
+            // Update only the value part - display as level/10
+            this.fireRateElement.innerText = `${labelPart} ${level}/10`;
         } else {
             // Fallback if no colon is found
-            this.fireRateElement.innerText = `FIRE RATE: ${fireRate}%`;
+            this.fireRateElement.innerText = `FIRE RATE: ${level}/10`;
         }
     }
     

@@ -6,9 +6,12 @@ class Player {
         this.rotation = 0;
         this.size = GAME_CONFIG.PLAYER.SIZE;
         this.lastFireTime = performance.now();  // Use performance.now() for precision
-        this.damage = 1; // Must be 1 for base damage
-        this.critChance = 0; // Start with 0% crit chance
-        this.fireRate = 0; // Start with 0% fire rate bonus
+        
+        // These values will be managed by PlayerStats
+        this.damage = 1; // Initial value, will be updated by PlayerStats
+        this.critChance = 0; // Initial value, will be updated by PlayerStats
+        this.fireRate = 0; // Initial value, will be updated by PlayerStats
+        
         this.isInvincible = false;
         this.invincibilityTime = 0;
         this.invincibilityDuration = 2000; // 2 seconds of invincibility after being hit

@@ -146,6 +146,9 @@ class Game {
         this.assets = new AssetLoader();
         this.shop = new Shop(this);
         
+        // Initialize player stats manager (after UI)
+        this.playerStats = new PlayerStats(this);
+        
         // Set up high frequency player updates
         this.lastPlayerUpdate = 0;
         this.playerUpdateInterval = 1000 / 144; // 144 Hz updates for player rotation
@@ -243,10 +246,8 @@ class Game {
             this
         );
         
-        // Reset player stats to initial values
-        this.player.damage = 1; // Must be 1 for base damage
-        this.player.fireRate = 0; // Start with 0% fire rate bonus
-        this.player.critChance = 0; // Start with 0% crit chance
+        // Reset player stats using the PlayerStats manager
+        this.playerStats.reset();
         
         // Reset all managers
         this.alienManager.reset();
@@ -282,6 +283,9 @@ class Game {
         this.isPaused = false;
         this.score = 0;
         this.coins = 0;
+        
+        // Reset player stats
+        this.playerStats.reset();
         
         // Reset UI
         this.ui.updateScore(this.score);
@@ -742,37 +746,18 @@ class Game {
     }
     
     increaseDamage() {
-        // Find the damage powerup config to get the value
-        const damagePowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'damage');
-        const increaseAmount = (damagePowerup && damagePowerup.VALUE) ? damagePowerup.VALUE : 1;
-        
-        // Update player damage (every 1 damage point = 10%)
-        this.player.damage += increaseAmount;
-        const damagePercent = (this.player.damage - 1) * 10;
-        
-        console.log(`Player damage increased to ${damagePercent}%`);
-        this.ui.updateDamage(damagePercent);
+        // Use PlayerStats to increase damage level (uses default 0.5 increment)
+        this.playerStats.increaseDamageLevel();
     }
     
     increaseCritChance() {
-        // Find the crit powerup config to get the value
-        const critPowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'crit');
-        if (critPowerup && critPowerup.VALUE) {
-            this.player.critChance += critPowerup.VALUE;
-            console.log(`Player critical chance increased to ${this.player.critChance}%`);
-            this.ui.updateCritChance(this.player.critChance);
-        }
+        // Use PlayerStats to increase crit chance level (uses default 0.5 increment)
+        this.playerStats.increaseCritChanceLevel();
     }
     
     increaseFireRate() {
-        // Find the powerup config to get the fire rate increase value
-        const fireRatePowerup = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.find(p => p.TYPE === 'firerate');
-        const increaseAmount = (fireRatePowerup && fireRatePowerup.VALUE) ? fireRatePowerup.VALUE : 10;
-        
-        this.player.fireRate += increaseAmount;
-        this.player.fireRate = Math.min(this.player.fireRate, 90); // Cap at 90% (can't have 0ms fire rate)
-        console.log(`Player fire rate increased to ${this.player.fireRate}% (cooldown reduced by ${increaseAmount}%)`);
-        this.ui.updateFireRate(this.player.fireRate);
+        // Use PlayerStats to increase fire rate level (uses default 0.5 increment)
+        this.playerStats.increaseFireRateLevel();
     }
     
     addExplosionEffect(x, y, size, powerupType) {

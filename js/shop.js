@@ -38,20 +38,7 @@ class Shop {
         this.isOpen = false;
         this.shopOverlay.style.display = 'none';
         
-        // Reset upgrades to initial state
-        this.upgrades.forEach(upgrade => {
-            switch (upgrade.id) {
-                case 'damage':
-                    this.game.player.damage = 1; // Base damage must be 1
-                    break;
-                case 'firerate':
-                    this.game.player.fireRate = 0; // 0% fire rate bonus
-                    break;
-                case 'crit':
-                    this.game.player.critChance = 0; // 0% crit chance
-                    break;
-            }
-        });
+        // Player stats are now reset by the PlayerStats manager
     }
     
     renderUpgrades() {
@@ -59,7 +46,7 @@ class Shop {
         
         this.upgrades.forEach(upgrade => {
             const level = this.getCurrentLevel(upgrade.id);
-            const cost = this.calculateCost(upgrade, level);
+            const cost = this.calculateCost(upgrade, Math.floor(level));
             const isMaxLevel = level >= upgrade.maxLevel;
             
             const upgradeElement = document.createElement('div');
@@ -70,7 +57,7 @@ class Shop {
                     <div class="name">${upgrade.name}</div>
                     <div class="description">${upgrade.description}</div>
                     <div class="stats">
-                        <span class="level">LEVEL ${level}/${upgrade.maxLevel}</span>
+                        <span class="level">LEVEL ${level.toFixed(1)}/${upgrade.maxLevel}</span>
                         <span class="cost">${isMaxLevel ? 'MAX LEVEL' : `${cost} COINS`}</span>
                     </div>
                 </div>
@@ -87,16 +74,8 @@ class Shop {
     }
     
     getCurrentLevel(upgradeId) {
-        switch (upgradeId) {
-            case 'damage':
-                return this.game.player.damage - 1;
-            case 'firerate':
-                return Math.floor(this.game.player.fireRate / 10);
-            case 'crit':
-                return Math.floor(this.game.player.critChance / 10);
-            default:
-                return 0;
-        }
+        // Use the PlayerStats manager to get the current level
+        return this.game.playerStats.getStatLevel(upgradeId);
     }
     
     calculateCost(upgrade, currentLevel) {
@@ -105,25 +84,13 @@ class Shop {
     
     purchaseUpgrade(upgrade) {
         const level = this.getCurrentLevel(upgrade.id);
-        const cost = this.calculateCost(upgrade, level);
+        const cost = this.calculateCost(upgrade, Math.floor(level));
         
         if (this.game.coins >= cost && level < upgrade.maxLevel) {
             this.game.coins -= cost;
             
-            switch (upgrade.id) {
-                case 'damage':
-                    this.game.player.damage++;
-                    this.game.ui.updateDamage(this.game.player.damage);
-                    break;
-                case 'firerate':
-                    this.game.player.fireRate += 10;
-                    this.game.ui.updateFireRate(this.game.player.fireRate);
-                    break;
-                case 'crit':
-                    this.game.player.critChance += 10;
-                    this.game.ui.updateCritChance(this.game.player.critChance);
-                    break;
-            }
+            // Use the PlayerStats manager to increase the stat level (uses default 0.5 increment)
+            this.game.playerStats.increaseStatLevel(upgrade.id);
             
             this.shopCoins.textContent = this.game.coins;
             this.renderUpgrades();
