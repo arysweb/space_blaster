@@ -24,6 +24,7 @@ class TutorialSystem {
         this.showingFinalDialogue = false;
         this.finalDialogueStep = 0;
         this.showShopButtonOnContinue = false;
+        this.showingUpgradeDropDialogue = false;
         
         // Store original game state to restore later
         this.originalState = {
@@ -73,6 +74,13 @@ class TutorialSystem {
             },
             {
                 text: "AI: I'll scan for more resources. Good luck, Commander—you'll need it."
+            }
+        ];
+        
+        // Upgrade drop dialogue that fades out after 3 seconds
+        this.upgradeDropDialogue = [
+            {
+                text: "AI: Commander, I've managed to restore a supply system. I can generate random upgrades—but with my systems unstable, I can't guarantee what you'll get."
             }
         ];
         
@@ -482,10 +490,23 @@ class TutorialSystem {
                 
                 this.finalDialogueStep++;
                 
-                // If we've reached the end of the final dialogue, complete the tutorial
+                // If we've reached the end of the final dialogue, start the game but wait 10 seconds before showing the upgrade drop dialogue
                 if (this.finalDialogueStep >= this.finalDialogue.length) {
-                    console.log('Final dialogue completed, completing tutorial');
-                    this.completeWithoutInfoBarChange();
+                    console.log('Final dialogue completed, starting game without mystery boxes');
+                    
+                    // Hide the dialogue box
+                    if (this.dialogueBox) {
+                        this.dialogueBox.style.display = 'none';
+                    }
+                    
+                    // Start the game without mystery boxes
+                    this.startGameWithoutMysteryBoxes();
+                    
+                    // Wait 10 seconds and then show the upgrade drop dialogue
+                    setTimeout(() => {
+                        this.showUpgradeDropDialogue();
+                    }, 10000);
+                    
                     return;
                 }
                 
@@ -744,6 +765,58 @@ class TutorialSystem {
     }
     
     /**
+     * Start the game without mystery boxes
+     */
+    startGameWithoutMysteryBoxes() {
+        try {
+            if (this.game) {
+                console.log('Starting game without mystery boxes');
+                
+                // Enable alien spawning to start the game as normal
+                if (this.game.alienManager) {
+                    console.log('Enabling alien spawning');
+                    this.game.alienManager.isPaused = false;
+                    
+                    // Restart the alien spawner
+                    this.game.alienManager.startAlienSpawner();
+                }
+                
+                // Disable mystery box spawning
+                if (this.game.mysteryBoxManager) {
+                    console.log('Disabling mystery box spawning');
+                    this.game.mysteryBoxManager.isPaused = true;
+                    
+                    // Clear existing mystery boxes
+                    if (Array.isArray(this.game.mysteryBoxManager.mysteryBoxes)) {
+                        this.game.mysteryBoxManager.mysteryBoxes = [];
+                    }
+                }
+                
+                // Enable cloud spawning
+                if (this.game.cloudManager) {
+                    console.log('Enabling cloud spawning');
+                    this.game.cloudManager.startCloudSpawner();
+                }
+                
+                // Restore player shooting
+                this.game.canPlayerShoot = this.originalState.playerShooting;
+                
+                // Restore info bar visibility
+                this.game.infoBarVisible = this.originalState.infoBarVisible;
+                
+                // Do NOT hide the shop button - it should stay visible
+                
+                // Set tutorial flag to false
+                this.game.isTutorialActive = false;
+                
+                console.log('Game started without mystery boxes');
+            }
+        } catch (error) {
+            console.error('Error starting game without mystery boxes:', error);
+        }
+    }
+    
+    /**
      * Hide the shop button
      */
     hideShopButton() {
@@ -833,6 +906,95 @@ class TutorialSystem {
             }
         } catch (error) {
             console.error('Error showing final dialogue step:', error);
+        }
+    }
+    
+    /**
+     * Show the upgrade drop dialogue
+     */
+    showUpgradeDropDialogue() {
+        try {
+            console.log('Showing upgrade drop dialogue');
+            
+            // Make sure we're not already showing the upgrade drop dialogue
+            if (!this.showingUpgradeDropDialogue) {
+                this.showingUpgradeDropDialogue = true;
+                
+                // Show the dialogue box
+                if (this.dialogueBox) {
+                    this.dialogueBox.style.display = 'block';
+                    
+                    // Set the dialogue text
+                    if (this.dialogueContent && this.upgradeDropDialogue && this.upgradeDropDialogue.length > 0) {
+                        this.dialogueContent.innerHTML = '';
+                        const text = document.createElement('p');
+                        text.textContent = this.upgradeDropDialogue[0].text;
+                        this.dialogueContent.appendChild(text);
+                    }
+                    
+                    // Hide the continue button
+                    if (this.continueButton) {
+                        this.continueButton.style.display = 'none';
+                    }
+                }
+                
+                // Wait 3 seconds and then hide the dialogue box and complete the tutorial
+                setTimeout(() => {
+                    if (this.dialogueBox) {
+                        this.dialogueBox.style.display = 'none';
+                    }
+                    this.showingUpgradeDropDialogue = false;
+                    
+                    // Complete the tutorial and start the game with mystery boxes
+                    this.completeWithMysteryBoxes();
+                }, 3000);
+            }
+        } catch (error) {
+            console.error('Error showing upgrade drop dialogue:', error);
+        }
+    }
+    
+    /**
+     * Complete the tutorial and start mystery boxes
+     */
+    completeWithMysteryBoxes() {
+        try {
+            console.log('Completing tutorial and starting mystery boxes');
+            
+            // Set tutorial as inactive
+            this.active = false;
+            
+            // Only enable mystery boxes, the rest of the game is already running
+            this.enableMysteryBoxes();
+            
+            // Clear alien check interval if it exists
+            if (this.alienCheckInterval) {
+                clearInterval(this.alienCheckInterval);
+                this.alienCheckInterval = null;
+            }
+            
+            console.log('Tutorial completed with mystery boxes enabled');
+        } catch (error) {
+            console.error('Error completing tutorial with mystery boxes:', error);
+        }
+    }
+    
+    /**
+     * Enable only the mystery boxes
+     */
+    enableMysteryBoxes() {
+        try {
+            if (this.game && this.game.mysteryBoxManager) {
+                console.log('Enabling mystery box spawning');
+                this.game.mysteryBoxManager.isPaused = false;
+                
+                // Restart the mystery box spawner
+                this.game.mysteryBoxManager.scheduleMysteryBoxSpawn();
+                
+                console.log('Mystery boxes enabled');
+            }
+        } catch (error) {
+            console.error('Error enabling mystery boxes:', error);
         }
     }
 }
