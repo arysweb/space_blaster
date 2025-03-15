@@ -26,6 +26,9 @@ class TutorialSystem {
         this.showShopButtonOnContinue = false;
         this.showingUpgradeDropDialogue = false;
         
+        // Cookie name for tracking tutorial completion
+        this.tutorialCookieName = 'spaceblaster_tutorial_seen';
+        
         // Store original game state to restore later
         this.originalState = {
             alienSpawning: true,
@@ -117,7 +120,15 @@ class TutorialSystem {
             if (window.gameInstance) {
                 console.log('Found game instance in window.gameInstance');
                 this.game = window.gameInstance;
-                setTimeout(() => this.start(), 1000);
+                
+                // Only start tutorial if it hasn't been seen today
+                if (!this.hasTutorialBeenSeenToday()) {
+                    setTimeout(() => this.start(), 1000);
+                } else {
+                    console.log('Tutorial already seen today, skipping');
+                    // Make sure the game is fully started
+                    this.completeWithMysteryBoxes();
+                }
             } else {
                 // Listen for game loaded event
                 console.log('Waiting for game to load...');
@@ -136,9 +147,16 @@ class TutorialSystem {
                         return;
                     }
                     
-                    console.log('Starting tutorial...');
-                    // Start tutorial after a short delay to ensure game is fully loaded
-                    setTimeout(() => this.start(), 1000);
+                    // Only start tutorial if it hasn't been seen today
+                    if (!this.hasTutorialBeenSeenToday()) {
+                        console.log('Starting tutorial...');
+                        // Start tutorial after a short delay to ensure game is fully loaded
+                        setTimeout(() => this.start(), 1000);
+                    } else {
+                        console.log('Tutorial already seen today, skipping');
+                        // Make sure the game is fully started
+                        this.completeWithMysteryBoxes();
+                    }
                 });
                 
                 // Fallback: Check for game instance after a delay
@@ -146,7 +164,15 @@ class TutorialSystem {
                     if (!this.game && window.gameInstance) {
                         console.log('Found game instance in fallback');
                         this.game = window.gameInstance;
-                        this.start();
+                        
+                        // Only start tutorial if it hasn't been seen today
+                        if (!this.hasTutorialBeenSeenToday()) {
+                            this.start();
+                        } else {
+                            console.log('Tutorial already seen today, skipping');
+                            // Make sure the game is fully started
+                            this.completeWithMysteryBoxes();
+                        }
                     }
                 }, 2000);
             }
@@ -973,6 +999,9 @@ class TutorialSystem {
                 this.alienCheckInterval = null;
             }
             
+            // Set cookie to indicate tutorial has been seen today
+            this.setTutorialSeenCookie();
+            
             console.log('Tutorial completed with mystery boxes enabled');
         } catch (error) {
             console.error('Error completing tutorial with mystery boxes:', error);
@@ -997,6 +1026,54 @@ class TutorialSystem {
             console.error('Error enabling mystery boxes:', error);
         }
     }
+    
+    /**
+     * Check if the tutorial has been seen today
+     * @returns {boolean} True if the tutorial has been seen today
+     */
+    hasTutorialBeenSeenToday() {
+        try {
+            // Get all cookies
+            const cookies = document.cookie.split(';');
+            
+            // Look for the tutorial cookie
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                
+                // Check if this is the tutorial cookie
+                if (cookie.indexOf(this.tutorialCookieName + '=') === 0) {
+                    console.log('Tutorial cookie found');
+                    return true;
+                }
+            }
+            
+            console.log('Tutorial cookie not found');
+            return false;
+        } catch (error) {
+            console.error('Error checking tutorial cookie:', error);
+            return false; // Default to showing tutorial if there's an error
+        }
+    }
+    
+    /**
+     * Set a cookie to indicate the tutorial has been seen today
+     */
+    setTutorialSeenCookie() {
+        try {
+            // Get current date
+            const now = new Date();
+            
+            // Set expiration to end of the current day
+            const expires = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            
+            // Set the cookie
+            document.cookie = `${this.tutorialCookieName}=true; expires=${expires.toUTCString()}; path=/`;
+            
+            console.log('Tutorial cookie set, expires at end of day');
+        } catch (error) {
+            console.error('Error setting tutorial cookie:', error);
+        }
+    }
 }
 
 // Create tutorial instance when the DOM is loaded
@@ -1008,8 +1085,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.tutorialSystem = new TutorialSystem();
         
         // Force start tutorial after a delay if it hasn't started automatically
+        // and only if it hasn't been seen today
         setTimeout(() => {
-            if (window.tutorialSystem && !window.tutorialSystem.active && window.gameInstance) {
+            if (window.tutorialSystem && !window.tutorialSystem.active && window.gameInstance && !window.tutorialSystem.hasTutorialBeenSeenToday()) {
                 console.log('Force starting tutorial');
                 window.tutorialSystem.game = window.gameInstance;
                 window.tutorialSystem.start();
