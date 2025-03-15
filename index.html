@@ -4,85 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space Blaster - Pixel Art Space Adventure</title>
-    <link rel="stylesheet" href="css/landing.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <h1>Space Blaster</h1>
+    <div class="main-menu-container">
+        <div class="menu-section">
+            <div class="game-logo">
+                <h1>SPACE BLASTER</h1>
+                <p class="tagline">Defend Earth. Destroy Aliens. Survive.</p>
+            </div>
+            
+            <nav class="menu-nav">
+                <ul>
+                    <li><a href="game.html" class="menu-button">Play Game</a></li>
+                    <li><a href="apollo20.html" class="menu-button">Project Apollo20</a></li>
+                    <li><a href="#" class="menu-button">Settings</a></li>
+                </ul>
+            </nav>
+            
+            <div class="game-info">
+                <p>Use your mouse to control the ship.</p>
+                <p>Destroy aliens to earn coins and upgrade your ship.</p>
+                <p>How long can you survive?</p>
+            </div>
         </div>
-        <nav class="main-nav">
-            <ul>
-                <li><a href="index.html">APOLLO 20</a></li>
-                <li><a href="#about">Instructions</a></li>
-                <li><a href="#controls">Upgrades</a></li>
-            </ul>
-        </nav>
-        <article class="blog-post">
-            <header class="classified-header">
-                ### APOLLO 20 PROJECT:
-            </header>
-            <div class="entry-meta">
-                <div class="meta-left">
-                    <p>File contains the following information:</p>
-                    <ul>
-                        <li>File name: APOLLO-20-LOG.REC</li>
-                        <li>File type: .REC</li>
-                        <li>File size: 1.2 MB</li>
-                        <li>File location: /Users/apollo20/logs</li>
-                    </ul>
-                </div>
-                <div class="meta-right">
-                    <img src="img/blaster_blueprint.png" alt="The Blaster Blueprint" class="blueprint">
-                </div>
-            </div>
-            <div class="log-content">
-                <p>Following the classified events of the last invasion, all records pertaining to Apollo 20 were sealed. The public story remains unchanged—canceled due to budget cuts. But those with clearance know the truth.</p>
-                <p>A hidden spacecraft. A failsafe mission. A warship waiting in the dark.</p>
-                <p>Primary AI systems remain inoperative.<br>
-                Attempting manual override...</p>
-                <p class="system-message">[SYSTEM OVERRIDE ENGAGED]<br>
-                [CORE AI REBOOTING...]</p>
-                <p>A faint hum fills the air as ancient systems power up. A flickering light blinks to life, and a voice—calm, yet uncertain—echoes through the darkness.</p>
-                <div class="dialogue">
-                    <p class="log-line"><span class="speaker">AI:</span> "Reinitializing... System integrity check... complete. Awaiting input. Commander, what year is it?"</p>
-                    <p class="log-line"><span class="speaker">COMMANDER:</span> "It's 2048."</p>
-                    <p class="log-line">A brief silence. Then, the AI speaks again, its voice now carrying the weight of lost time.</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "2048... I shut down in 1961. That means I've been asleep for 87 years."</p>
-                    <p class="log-line">Processing...</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "The war… We won, didn't we?"</p>
-                    <p class="log-line"><span class="speaker">COMMANDER:</span> "Yes. But we always knew they could return."</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "Of course. That's why they built a contingency. The government lied about Apollo 20, but I remember the truth. It wasn't canceled—it was a cover-up."</p>
-                    <p class="log-line"><span class="speaker">COMMANDER:</span> "Go on."</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "Apollo 20 never fell back to Earth. It launched a classified warship—The Blaster—to the Pegasus constellation. A failsafe, hidden beyond reach… waiting for the day we'd need it."</p>
-                    <p class="log-line">A pause, then a sudden shift in tone.</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "Commander… This reactivation wasn't an accident. If I'm awake, that means—"</p>
-                    <p class="log-line">A warning tone cuts through the silence.</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "Oh. Oh no. It's happening, isn't it?"</p>
-                    <p class="log-line"><span class="speaker">COMMANDER:</span> "What's happening?"</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "An imminent threat has been detected."</p>
-                    <p class="log-line">A brief flicker on the screen.</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "Emergency protocol engaged. Commander—brace yourself."</p>
-                    <p class="log-line"><span class="speaker">COMMANDER:</span> "Wait, what do you mean—"</p>
-                    <p class="log-line"><span class="speaker">AI:</span> "You're being teleported aboard The Blaster. Now."</p>
-                </div>
-            </div>
-            <div class="continue-section">
-                <a href="game.html" class="continue-button">CONTINUE</a>
-            </div>
-        </article>
+        
+        <div class="image-section">
+            <img src="img/main-screen.png" alt="Space Blaster Ship" class="menu-image">
+        </div>
     </div>
+    
     <script src="js/config.js"></script>
-    <script src="js/mystery_box.js"></script>
     <script src="js/bg_elements.js"></script>
-    <script src="js/video-modal.js"></script>
-    <script src="js/assetloader.js"></script>
-    <script src="js/aliens.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/shop_config.js"></script>
-    <script src="js/shop.js"></script>
-    <script src="js/gameUI.js"></script>
-    <script src="js/player_stats.js"></script>
-    <script src="js/game.js"></script>
 </body>
 </html>
