@@ -938,7 +938,7 @@ class TutorialSystem {
                     }
                 }
                 
-                // Wait 3 seconds and then hide the dialogue box and complete the tutorial
+                // Wait 5 seconds and then hide the dialogue box and complete the tutorial
                 setTimeout(() => {
                     if (this.dialogueBox) {
                         this.dialogueBox.style.display = 'none';
@@ -947,7 +947,7 @@ class TutorialSystem {
                     
                     // Complete the tutorial and start the game with mystery boxes
                     this.completeWithMysteryBoxes();
-                }, 3000);
+                }, 5000);
             }
         } catch (error) {
             console.error('Error showing upgrade drop dialogue:', error);
