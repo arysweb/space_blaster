@@ -137,4 +137,41 @@ class GameUI {
     setupShopButton(callback) {
         this.shopButtonElement.addEventListener('click', callback);
     }
+    
+    /**
+     * Update info bar visibility with optional fade effect
+     * @param {boolean} visible - Whether the info bar should be visible
+     * @param {boolean} fade - Whether to fade in the info bar
+     */
+    updateInfoBarVisibility(visible, fade = false) {
+        const infoBar = document.getElementById('info-bar');
+        if (infoBar) {
+            if (visible) {
+                if (fade) {
+                    // Remove any existing classes
+                    infoBar.classList.remove('fade-in');
+                    // Force a reflow to restart the animation
+                    void infoBar.offsetWidth;
+                    // Set display to flex and add fade-in class
+                    infoBar.style.display = 'flex';
+                    infoBar.classList.add('fade-in');
+                } else {
+                    infoBar.style.display = 'flex';
+                }
+            } else {
+                infoBar.style.display = 'none';
+            }
+        }
+    }
+    
+    /**
+     * Update shop button visibility
+     * @param {boolean} visible - Whether the shop button should be visible
+     */
+    updateShopButtonVisibility(visible) {
+        const shopButton = document.getElementById('shopButton');
+        if (shopButton) {
+            shopButton.style.display = visible ? 'block' : 'none';
+        }
+    }
 }

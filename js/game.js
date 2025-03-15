@@ -135,11 +135,15 @@ class Game {
         // Game state
         this.gameOver = false;
         this.isPaused = false;
+        this.isTutorialActive = false; // Add tutorial state flag
+        this.canPlayerShoot = true; // Add flag to control player shooting
         this.score = 0;
         this.coins = 0;
+        this.lives = GAME_CONFIG.PLAYER.LIVES;
         this.isMouseDown = false;
         this.mouseX = 0;
         this.mouseY = 0;
+        this.infoBarVisible = true; // Add infoBarVisible flag
         
         // Initialize managers and UI
         this.ui = new GameUI();
@@ -166,6 +170,14 @@ class Game {
         
         // Start game loop
         this.gameLoop();
+        
+        // Hide shop button if tutorial is active
+        if (this.isTutorialActive) {
+            const shopButton = document.getElementById('shopButton');
+            if (shopButton) {
+                shopButton.style.display = 'none';
+            }
+        }
     }
     
     initializeGameObjects() {
@@ -395,7 +407,7 @@ class Game {
     }
     
     tryPlayerShoot() {
-        if (this.gameOver || this.isPaused || !this.player) return;
+        if (this.gameOver || this.isPaused || !this.player || !this.canPlayerShoot) return;
         
         const bullet = this.player.tryFire();
         if (bullet) {
@@ -621,6 +633,9 @@ class Game {
         // Clear the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
+        // Always update UI
+        this.updateInfoBarVisibility();
+        
         // Always update aliens to handle pause state
         this.alienManager.updateAliens();
         
@@ -836,9 +851,19 @@ class Game {
         // Resume the game and restart alien spawning
         this.alienManager.startAlienSpawner();
     }
+    
+    updateInfoBarVisibility() {
+        // Update info bar visibility using the UI class
+        if (this.ui) {
+            this.ui.updateInfoBarVisibility(this.infoBarVisible);
+        }
+    }
 }
 
 // Initialize game when the window loads
 window.addEventListener('load', () => {
     window.gameInstance = new Game();
+    
+    // Dispatch event that game is loaded
+    window.dispatchEvent(new CustomEvent('gameLoaded', { detail: { game: window.gameInstance } }));
 });

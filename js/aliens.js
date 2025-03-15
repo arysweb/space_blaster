@@ -274,6 +274,7 @@ class AlienManager {
         this.alienSpawnerTimeout = null;
         this.gameStartTime = Date.now();
         this.availableTypes = [1]; // Start with small aliens (type 1)
+        this.isPaused = false; // Add isPaused flag
     }
     
     updateAvailableTypes() {
@@ -312,9 +313,9 @@ class AlienManager {
             this.alienSpawnerTimeout = null;
         }
         
-        // Don't spawn if game is over
-        if (this.game.gameOver) {
-            console.log('Alien spawner not started - game is over');
+        // Don't spawn if game is over or paused
+        if (this.game.gameOver || this.isPaused) {
+            console.log('Alien spawner not started - game is over or paused');
             return;
         }
         
@@ -326,12 +327,12 @@ class AlienManager {
         
         // Schedule next spawn
         this.alienSpawnerTimeout = setTimeout(() => {
-            // Only continue spawning if the game is not over
-            if (!this.game.gameOver) {
+            // Only continue spawning if the game is not over and not paused
+            if (!this.game.gameOver && !this.isPaused) {
                 this.startAlienSpawner();
             } else {
-                // If game is over, we'll stop the spawner
-                console.log('Alien spawner stopped - game is over');
+                // If game is over or paused, we'll stop the spawner
+                console.log('Alien spawner stopped - game is over or paused');
                 if (this.alienSpawnerTimeout) {
                     clearTimeout(this.alienSpawnerTimeout);
                     this.alienSpawnerTimeout = null;

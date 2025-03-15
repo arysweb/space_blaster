@@ -192,6 +192,7 @@ class MysteryBoxManager {
         this.mysteryBoxes = [];
         this.explosions = [];
         this.spawnTimeout = null;
+        this.isPaused = false; // Add isPaused flag
         
         // Get powerup types from config
         this.powerupTypes = GAME_CONFIG.MYSTERY_BOX.POWERUPS.TYPES.map(p => p.TYPE);
@@ -213,8 +214,8 @@ class MysteryBoxManager {
             this.spawnTimeout = null;
         }
         
-        // Don't schedule if game is over
-        if (this.game.gameOver) return;
+        // Don't schedule if game is over or paused
+        if (this.game.gameOver || this.isPaused) return;
         
         // Random spawn interval between min and max
         const spawnInterval = Math.random() * 
@@ -224,11 +225,11 @@ class MysteryBoxManager {
         // Schedule the spawn
         this.spawnTimeout = setTimeout(() => {
             // Only spawn if the game is not paused and there are no existing boxes
-            if (!this.game.isPaused && !this.game.gameOver && this.mysteryBoxes.length === 0) {
+            if (!this.game.isPaused && !this.game.gameOver && !this.isPaused && this.mysteryBoxes.length === 0) {
                 this.spawnMysteryBox();
             }
-            // Always schedule next spawn unless game is over
-            if (!this.game.gameOver) {
+            // Always schedule next spawn unless game is over or paused
+            if (!this.game.gameOver && !this.isPaused) {
                 this.scheduleMysteryBoxSpawn();
             }
         }, spawnInterval);
