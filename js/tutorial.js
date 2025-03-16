@@ -525,6 +525,9 @@ class TutorialSystem {
                         this.dialogueBox.style.display = 'none';
                     }
                     
+                    // Reset the flag
+                    this.showingFinalDialogue = false;
+                    
                     // Start the game without mystery boxes
                     this.startGameWithoutMysteryBoxes();
                     
@@ -943,7 +946,8 @@ class TutorialSystem {
             console.log('Showing upgrade drop dialogue');
             
             // Make sure we're not already showing the upgrade drop dialogue
-            if (!this.showingUpgradeDropDialogue) {
+            // and that the tutorial has not been completed
+            if (!this.showingUpgradeDropDialogue && this.active) {
                 this.showingUpgradeDropDialogue = true;
                 
                 // Show the dialogue box
@@ -959,8 +963,8 @@ class TutorialSystem {
                     }
                     
                     // Hide the continue button
-                    if (this.continueButton) {
-                        this.continueButton.style.display = 'none';
+                    if (this.nextButton) {
+                        this.nextButton.style.display = 'none';
                     }
                 }
                 
@@ -974,6 +978,11 @@ class TutorialSystem {
                     // Complete the tutorial and start the game with mystery boxes
                     this.completeWithMysteryBoxes();
                 }, 5000);
+            } else {
+                // If the tutorial is already completed, just ensure mystery boxes are enabled
+                if (!this.active) {
+                    this.enableMysteryBoxes();
+                }
             }
         } catch (error) {
             console.error('Error showing upgrade drop dialogue:', error);
