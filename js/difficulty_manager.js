@@ -21,10 +21,10 @@ class DifficultyManager {
         this.ALIEN_INTRODUCTION_TIMES = {
             0: ["basicAlien"],
             60: ["basicAlien", "secondAlienType"],
-            150: ["basicAlien", "secondAlienType", "thirdAlienType"],
-            240: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType"],
-            330: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType"],
-            420: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType", "sixthAlienType"]
+            120: ["basicAlien", "secondAlienType", "thirdAlienType"],
+            180: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType"],
+            240: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType"],
+            300: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType", "sixthAlienType"]
         };
         
         // Difficulty increases per minute
@@ -36,13 +36,13 @@ class DifficultyManager {
         this.AI_MESSAGES = [
             // New alien type introductions - announce just 1 second before they appear
             { time: 59, message: "Detecting new alien signatures approaching." },
-            { time: 149, message: "More advanced alien species detected." },
-            { time: 239, message: "Heavy alien reinforcements incoming!" },
+            { time: 119, message: "More advanced alien species detected." },
+            { time: 179, message: "Heavy alien reinforcements incoming!" },
             
             // Major difficulty increases
             { time: 90, message: "Enemy ships increasing speed and durability." },
-            { time: 180, message: "Alien attack patterns becoming more aggressive." },
-            { time: 300, message: "Alien reinforcements arriving at accelerated rate." }
+            { time: 150, message: "Alien attack patterns becoming more aggressive." },
+            { time: 210, message: "Alien reinforcements arriving at accelerated rate." }
         ];
     }
     
@@ -54,8 +54,14 @@ class DifficultyManager {
         // Don't update if game is paused or over
         if (this.game.isPaused || this.game.gameOver) return;
         
-        // Update game time (in seconds)
+        // Update game time (in seconds) with normal progression
         this.gameTime += deltaTime / 1000;
+        
+        // Log game time every 10 seconds for debugging
+        if (Math.floor(this.gameTime) % 10 === 0 && Math.floor(this.gameTime) !== Math.floor(this.lastDifficultyUpdate)) {
+            console.log(`Game time: ${Math.floor(this.gameTime)} seconds`);
+            console.log("Available alien types:", this.getAvailableAlienTypes());
+        }
         
         // Update difficulty every second
         if (this.gameTime - this.lastDifficultyUpdate >= 1) {
@@ -97,18 +103,18 @@ class DifficultyManager {
         // Start with small aliens (type 1) and slug aliens (type 4)
         const availableTypes = [1, 4];
         
-        // Add big aliens (type 0) after 2 minutes
-        if (this.gameTime >= 120) {
+        // Add big aliens (type 0) after 60 seconds
+        if (this.gameTime >= 60) {
             availableTypes.push(0);
         }
         
-        // Add L3 aliens (type 2) after 4 minutes
-        if (this.gameTime >= 240) {
+        // Add L3 aliens (type 2) after 120 seconds (2 minutes)
+        if (this.gameTime >= 120) {
             availableTypes.push(2);
         }
         
-        // Add L4 aliens (type 3) after 6 minutes
-        if (this.gameTime >= 360) {
+        // Add L4 aliens (type 3) after 180 seconds (3 minutes)
+        if (this.gameTime >= 180) {
             availableTypes.push(3);
         }
         
@@ -141,6 +147,14 @@ class DifficultyManager {
      */
     getAlienHealthModifier() {
         return this.alienHealthMultiplier;
+    }
+    
+    /**
+     * Get current alien spawn rate multiplier
+     * @returns {number} Spawn rate multiplier
+     */
+    getAlienSpawnRateMultiplier() {
+        return this.alienSpawnRateMultiplier;
     }
     
     /**

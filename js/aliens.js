@@ -291,7 +291,11 @@ class AlienManager {
         if (this.game.difficultyManager) {
             const availableTypes = this.game.difficultyManager.getAvailableAlienTypes();
             if (availableTypes && availableTypes.length > 0) {
-                this.availableTypes = availableTypes;
+                // Make sure we're updating the available types, not just replacing them
+                this.availableTypes = [...availableTypes];
+                
+                // Log available types for debugging
+                console.log("Available alien types:", this.availableTypes);
             }
         }
     }
