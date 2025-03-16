@@ -16,7 +16,7 @@
             
             <nav class="menu-nav">
                 <ul>
-                    <li><a href="game.html" class="menu-button">Play Game</a></li>
+                    <li><a href="game.html" class="menu-button" id="playGameButton">Play Game</a></li>
                     <li><a href="apollo20.html" class="menu-button">Project Apollo20</a></li>
                     <li><a href="#" class="menu-button">Settings</a></li>
                 </ul>
@@ -36,5 +36,21 @@
     
     <script src="js/config.js"></script>
     <script src="js/bg_elements.js"></script>
+    <script>
+        // Check if player data exists in localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const playButton = document.getElementById('playGameButton');
+            const STORAGE_KEY = 'spaceShooter_playerData';
+            
+            // Check if there's saved player data
+            if (localStorage.getItem(STORAGE_KEY)) {
+                // Player has saved data, change button text to "Resume Game"
+                playButton.textContent = 'Resume Game';
+            } else {
+                // No saved data, use "Start Game"
+                playButton.textContent = 'Start Game';
+            }
+        });
+    </script>
 </body>
 </html>
