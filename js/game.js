@@ -139,7 +139,7 @@ class Game {
         this.canPlayerShoot = true; // Add flag to control player shooting
         this.score = 0;
         this.coins = 0;
-        this.lives = GAME_CONFIG.PLAYER.LIVES;
+        this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
         this.isMouseDown = false;
         this.mouseX = 0;
         this.mouseY = 0;
@@ -152,6 +152,9 @@ class Game {
         
         // Initialize player stats manager (after UI)
         this.playerStats = new PlayerStats(this);
+        
+        // Initialize player data manager for localStorage persistence
+        this.playerData = new PlayerData();
         
         // Set up high frequency player updates
         this.lastPlayerUpdate = 0;
@@ -166,7 +169,10 @@ class Game {
         // Initialize UI
         this.ui.updateScore(this.score);
         this.ui.updateCoins(this.coins);
-        this.ui.updateLives(3); // default lives
+        this.ui.updateLives(this.lives);
+        
+        // Load saved player data if available
+        this.loadSavedPlayerData();
         
         // Start game loop
         this.gameLoop();
@@ -182,7 +188,7 @@ class Game {
     
     initializeGameObjects() {
         // Initialize game state
-        this.lives = 3; // default lives
+        this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES; // default lives
         this.gameStartTime = Date.now();
         
         // Initialize empty arrays for game entities
@@ -241,8 +247,17 @@ class Game {
         this.gameOver = false;
         this.isPaused = false;
         this.score = 0;
-        this.coins = 0;
-        this.lives = 3; // default lives
+        
+        // If player has saved data, use it, otherwise start with defaults
+        if (this.playerData.hasPlayerData()) {
+            // Load saved data (this will set coins, lives, and upgrades)
+            this.playerData.applyPlayerData(this);
+        } else {
+            // Use default values
+            this.coins = 0;
+            this.lives = GAME_CONFIG.PLAYER.STARTING_LIVES;
+        }
+        
         this.gameStartTime = Date.now();
         
         // Reset all entities
@@ -258,8 +273,10 @@ class Game {
             this
         );
         
-        // Reset player stats using the PlayerStats manager
-        this.playerStats.reset();
+        // Reset player stats using the PlayerStats manager if no saved data
+        if (!this.playerData.hasPlayerData()) {
+            this.playerStats.reset();
+        }
         
         // Reset all managers
         this.alienManager.reset();
@@ -518,6 +535,9 @@ class Game {
                         // Add coins
                         this.coins += alien.coins;
                         
+                        // Save player data after earning coins
+                        this.savePlayerData();
+                        
                         // Create coin effect
                         this.addCoinEffect(alien.x, alien.y, alien.coins);
                         
@@ -549,10 +569,16 @@ class Game {
                 (coins) => {
                     this.coins += coins;
                     this.ui.updateCoins(this.coins);
+                    // Save player data after earning coins from mystery box
+                    this.savePlayerData();
                 },
                 (x, y, amount) => this.addCoinEffect(x, y, amount),
                 (x, y, size, type) => this.addExplosionEffect(x, y, size, type),
-                () => this.addLife()
+                () => {
+                    this.addLife();
+                    // Save player data after gaining a life
+                    this.savePlayerData();
+                }
             );
         }
         
@@ -566,6 +592,9 @@ class Game {
                     this.lives--;
                     this.ui.updateLives(this.lives);
                     
+                    // Save player data after losing a life
+                    this.savePlayerData();
+                    
                     // Visual feedback for damage
                     this.addDamageEffect(this.player.x, this.player.y);
                     
@@ -576,6 +605,9 @@ class Game {
                         this.gameOver = true;
                         this.ui.showGameOver(this.score, this.coins);
                         this.ui.setupRestartButton(() => this.resetGame());
+                        
+                        // Clear player data when game over (no more lives)
+                        this.playerData.clearPlayerData();
                     }
                 }
             }
@@ -857,6 +889,28 @@ class Game {
         if (this.ui) {
             this.ui.updateInfoBarVisibility(this.infoBarVisible);
         }
+    }
+    
+    loadSavedPlayerData() {
+        if (this.playerData.hasPlayerData()) {
+            this.playerData.applyPlayerData(this);
+            console.log('Loaded saved player data');
+        } else {
+            console.log('No saved player data found, starting with defaults');
+        }
+    }
+    
+    savePlayerData() {
+        this.playerData.savePlayerData(this);
+    }
+    
+    increaseStatLevel(statId, amount = 0.5) {
+        const result = this.playerStats.increaseStatLevel(statId, amount);
+        if (result) {
+            // Save player data after successful upgrade
+            this.savePlayerData();
+        }
+        return result;
     }
 }
 

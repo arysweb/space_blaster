@@ -89,11 +89,15 @@ class Shop {
         if (this.game.coins >= cost && level < upgrade.maxLevel) {
             this.game.coins -= cost;
             
-            // Use the PlayerStats manager to increase the stat level (uses default 0.5 increment)
-            this.game.playerStats.increaseStatLevel(upgrade.id);
+            // Use the Game's increaseStatLevel method which will also save player data
+            this.game.increaseStatLevel(upgrade.id);
             
+            // Update UI
             this.shopCoins.textContent = this.game.coins;
             this.renderUpgrades();
+            
+            // Save player data after purchase
+            this.game.savePlayerData();
         }
     }
 }
