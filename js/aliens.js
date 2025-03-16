@@ -39,6 +39,13 @@ class Alien {
             this.coins = GAME_CONFIG.ENEMY.L4.COINS;
             this.health = GAME_CONFIG.ENEMY.L4.HEALTH;
             this.maxHealth = GAME_CONFIG.ENEMY.L4.HEALTH;
+        } else if (type === 4) { // Slug alien
+            this.size = GAME_CONFIG.ENEMY.SLUG.SIZE;
+            this.speed = GAME_CONFIG.ENEMY.SLUG.SPEED;
+            this.points = GAME_CONFIG.ENEMY.SLUG.POINTS;
+            this.coins = GAME_CONFIG.ENEMY.SLUG.COINS;
+            this.health = GAME_CONFIG.ENEMY.SLUG.HEALTH;
+            this.maxHealth = GAME_CONFIG.ENEMY.SLUG.HEALTH;
         }
         
         // Calculate direction towards player instead of center of screen
@@ -149,7 +156,7 @@ class Alien {
             );
         } else {
             // Fallback: Draw a simple shape if image is not available
-            ctx.fillStyle = this.type === 0 ? '#ff0000' : this.type === 1 ? '#ff5555' : this.type === 2 ? '#ff00ff' : '#00ffff';
+            ctx.fillStyle = this.type === 0 ? '#ff0000' : this.type === 1 ? '#ff5555' : this.type === 2 ? '#ff00ff' : this.type === 3 ? '#00ffff' : '#ff00ff';
             
             // Draw alien shape
             ctx.beginPath();
@@ -273,9 +280,10 @@ class AlienManager {
         this.explosions = [];
         this.alienSpawnerTimeout = null;
         this.gameStartTime = Date.now();
-        this.availableTypes = [1]; // Start with small aliens (type 1)
+        this.availableTypes = [1, 4]; // Start with small aliens (type 1) and slug aliens (type 4)
         this.isPaused = false; // Add isPaused flag
         this.spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
+        this.spawnCounter = 0; // Initialize spawn counter
     }
     
     updateAvailableTypes() {
@@ -294,7 +302,27 @@ class AlienManager {
         // Update available types first
         this.updateAvailableTypes();
         
-        // Randomly select from available types
+        // For controlling slug spawn rate
+        if (this.availableTypes.includes(4)) { // If slug is available
+            // Use a counter to control spawn ratio (1 slug for every 3 small aliens)
+            if (!this.spawnCounter) {
+                this.spawnCounter = 0;
+            }
+            
+            this.spawnCounter++;
+            
+            // Every 4th spawn should be a slug (1:3 ratio)
+            if (this.spawnCounter % 4 === 0) {
+                return 4; // Return slug type
+            }
+            
+            // For other spawns, exclude slug from random selection
+            const filteredTypes = this.availableTypes.filter(type => type !== 4);
+            const randomIndex = Math.floor(Math.random() * filteredTypes.length);
+            return filteredTypes[randomIndex];
+        }
+        
+        // If no slug in available types or for other cases, use standard random selection
         const randomIndex = Math.floor(Math.random() * this.availableTypes.length);
         return this.availableTypes[randomIndex];
     }
@@ -501,14 +529,17 @@ class AlienManager {
         this.aliens = [];
         this.explosions = [];
         
-        // Reset available types to just small aliens
-        this.availableTypes = [1];
+        // Reset available types to just small aliens and slug aliens
+        this.availableTypes = [1, 4];
         
         // Reset game start time
         this.gameStartTime = Date.now();
         
         // Reset spawn interval to default
         this.spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
+        
+        // Reset spawn counter
+        this.spawnCounter = 0;
         
         // Clear any existing spawner timeout
         if (this.alienSpawnerTimeout) {

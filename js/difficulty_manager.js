@@ -94,8 +94,8 @@ class DifficultyManager {
      * @returns {Array<number>} Array of available alien type IDs
      */
     getAvailableAlienTypes() {
-        // Start with small aliens (type 1)
-        const availableTypes = [1];
+        // Start with small aliens (type 1) and slug aliens (type 4)
+        const availableTypes = [1, 4];
         
         // Add big aliens (type 0) after 2 minutes
         if (this.gameTime >= 120) {

@@ -329,7 +329,7 @@ class Game {
         
         // Reset alien manager's game start time and available types
         this.alienManager.gameStartTime = Date.now();
-        this.alienManager.availableTypes = [1]; // Reset to only small aliens
+        this.alienManager.availableTypes = [1, 4]; // Reset to small aliens and slug aliens
         
         // Start spawners
         this.alienManager.startAlienSpawner();

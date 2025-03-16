@@ -33,6 +33,14 @@ const GAME_CONFIG = {
             HEALTH: 1, // Health points for small aliens
             IMAGE: 'img/aliens/alien_small.png'
         },
+        SLUG: {
+            SIZE: 30, // Smaller than other aliens
+            SPEED: 1.1, // Faster than other aliens
+            POINTS: 5, // Lower points as it's weaker
+            COINS: 1,
+            HEALTH: 0.5, // Reduced health so they die with one shot
+            IMAGE: 'img/aliens/slug_1.png'
+        },
         L3: {
             SIZE: 50,
             SPEED: 1,
