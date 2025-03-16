@@ -533,6 +533,7 @@ class TutorialSystem {
                     
                     // Wait 10 seconds and then show the upgrade drop dialogue
                     setTimeout(() => {
+                        console.log('Showing upgrade drop dialogue after delay');
                         this.showUpgradeDropDialogue();
                     }, 10000);
                     
@@ -835,8 +836,9 @@ class TutorialSystem {
                 
                 // Do NOT hide the shop button - it should stay visible
                 
-                // Set tutorial flag to false
-                this.game.isTutorialActive = false;
+                // Keep the tutorial active until the mystery box dialogue is shown
+                // We'll set it to false in completeWithMysteryBoxes
+                this.game.isTutorialActive = true;
                 
                 console.log('Game started without mystery boxes');
             }
@@ -933,27 +935,9 @@ class TutorialSystem {
                     this.executeAction(this.finalDialogue[stepIndex].action);
                 }
                 
-                // Hide the continue button for the last step
-                if (stepIndex === this.finalDialogue.length - 1) {
-                    if (this.nextButton) {
-                        this.nextButton.style.display = 'none';
-                    }
-                    
-                    // Auto-hide the dialogue after 5 seconds for the last step
-                    setTimeout(() => {
-                        if (this.dialogueBox) {
-                            this.dialogueBox.style.display = 'none';
-                        }
-                        this.showingFinalDialogue = false;
-                        
-                        // Complete the tutorial and start the game with mystery boxes
-                        this.completeWithMysteryBoxes();
-                    }, 5000);
-                } else {
-                    // Make sure the continue button is visible for non-final steps
-                    if (this.nextButton) {
-                        this.nextButton.style.display = 'block';
-                    }
+                // Always show the continue button
+                if (this.nextButton) {
+                    this.nextButton.style.display = 'block';
                 }
             }
         } catch (error) {
@@ -969,8 +953,7 @@ class TutorialSystem {
             console.log('Showing upgrade drop dialogue');
             
             // Make sure we're not already showing the upgrade drop dialogue
-            // and that the tutorial has not been completed
-            if (!this.showingUpgradeDropDialogue && this.active) {
+            if (!this.showingUpgradeDropDialogue) {
                 this.showingUpgradeDropDialogue = true;
                 
                 // Show the dialogue box
@@ -1002,10 +985,8 @@ class TutorialSystem {
                     this.completeWithMysteryBoxes();
                 }, 5000);
             } else {
-                // If the tutorial is already completed, just ensure mystery boxes are enabled
-                if (!this.active) {
-                    this.enableMysteryBoxes();
-                }
+                // If the dialogue is already showing, just ensure mystery boxes are enabled
+                this.enableMysteryBoxes();
             }
         } catch (error) {
             console.error('Error showing upgrade drop dialogue:', error);
@@ -1022,13 +1003,27 @@ class TutorialSystem {
             // Set tutorial as inactive
             this.active = false;
             
-            // Only enable mystery boxes, the rest of the game is already running
+            // Enable mystery boxes
             this.enableMysteryBoxes();
+            
+            // Enable alien spawning
+            if (this.game && this.game.alienManager) {
+                console.log('Enabling alien spawning');
+                this.game.alienManager.isPaused = false;
+                
+                // Restart the alien spawner
+                this.game.alienManager.startAlienSpawner();
+            }
             
             // Clear alien check interval if it exists
             if (this.alienCheckInterval) {
                 clearInterval(this.alienCheckInterval);
                 this.alienCheckInterval = null;
+            }
+            
+            // Set the game's tutorial flag to false
+            if (this.game) {
+                this.game.isTutorialActive = false;
             }
             
             // Set cookie to indicate tutorial has been seen today
