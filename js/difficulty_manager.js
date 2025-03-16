@@ -34,10 +34,10 @@ class DifficultyManager {
         
         // AI messages for difficulty changes - only at key moments
         this.AI_MESSAGES = [
-            // New alien type introductions
-            { time: 58, message: "Detecting new alien signatures approaching." },
-            { time: 148, message: "More advanced alien species detected." },
-            { time: 238, message: "Heavy alien reinforcements incoming!" },
+            // New alien type introductions - announce just 1 second before they appear
+            { time: 59, message: "Detecting new alien signatures approaching." },
+            { time: 149, message: "More advanced alien species detected." },
+            { time: 239, message: "Heavy alien reinforcements incoming!" },
             
             // Major difficulty increases
             { time: 90, message: "Enemy ships increasing speed and durability." },
@@ -180,18 +180,18 @@ class DifficultyManager {
         dialogueBox.style.display = 'block';
         
         // Slow down the game instead of pausing it completely
-        this.game.timeScale = 0.3; // Slow motion effect
+        this.game.timeScale = 0.5; // Slow motion effect, but not too slow
         
-        // Resume normal speed after 3 seconds
+        // Resume normal speed after 1.5 seconds (shorter time)
         setTimeout(() => {
             this.game.timeScale = 1.0;
-        }, 3000);
+        }, 1500);
         
         // Remove dialogue after a few seconds
         setTimeout(() => {
             dialogueBox.classList.add('fade-out');
             setTimeout(() => dialogueBox.remove(), 1000);
-        }, 5000);
+        }, 3000);
     }
     
     /**

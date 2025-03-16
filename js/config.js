@@ -27,7 +27,7 @@ const GAME_CONFIG = {
         },
         SMALL: {
             SIZE: 50,
-            SPEED: 1.2,
+            SPEED: 1, // Reduced from 1.2 to 0.8
             POINTS: 10,
             COINS: 1,
             HEALTH: 1, // Health points for small aliens
@@ -59,7 +59,7 @@ const GAME_CONFIG = {
             'img/bg_elements/bg_cloud_3.png'
         ],
         CLOUD_SIZES: [500, 450, 400], // Increased sizes
-        CLOUD_SPEEDS: [1, 0.7, 0.5],
+        CLOUD_SPEEDS: [0.5, 0.3, 0.2], // Reduced speeds
         CLOUD_SPAWN_INTERVAL: 10000, 
         MIN_CLOUD_DISTANCE: 1000  // Minimum distance between clouds to prevent overlap
     },
