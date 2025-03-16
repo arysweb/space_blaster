@@ -275,23 +275,16 @@ class AlienManager {
         this.gameStartTime = Date.now();
         this.availableTypes = [1]; // Start with small aliens (type 1)
         this.isPaused = false; // Add isPaused flag
+        this.spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
     }
     
     updateAvailableTypes() {
-        const elapsedSeconds = (Date.now() - this.gameStartTime) / 1000;
-        
-        // Add new alien types as time progresses
-        if (elapsedSeconds >= 30 && !this.availableTypes.includes(0)) {
-            this.availableTypes.push(0); // Add big aliens
-            console.log('Big aliens now joining the fight!');
-        }
-        if (elapsedSeconds >= 60 && !this.availableTypes.includes(2)) {
-            this.availableTypes.push(2); // Add L3 aliens
-            console.log('L3 aliens now joining the fight!');
-        }
-        if (elapsedSeconds >= 90 && !this.availableTypes.includes(3)) {
-            this.availableTypes.push(3); // Add L4 aliens
-            console.log('L4 aliens now joining the fight!');
+        // Use the difficulty manager to determine available alien types
+        if (this.game.difficultyManager) {
+            const availableTypes = this.game.difficultyManager.getAvailableAlienTypes();
+            if (availableTypes && availableTypes.length > 0) {
+                this.availableTypes = availableTypes;
+            }
         }
     }
     
@@ -322,8 +315,10 @@ class AlienManager {
         // Spawn an alien
         this.spawnAlien();
         
-        // Use fixed spawn interval from config
-        const spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
+        // Get spawn interval from difficulty manager if available
+        if (this.game.difficultyManager) {
+            this.spawnInterval = this.game.difficultyManager.getAlienSpawnInterval();
+        }
         
         // Schedule next spawn
         this.alienSpawnerTimeout = setTimeout(() => {
@@ -338,7 +333,7 @@ class AlienManager {
                     this.alienSpawnerTimeout = null;
                 }
             }
-        }, spawnInterval);
+        }, this.spawnInterval);
     }
     
     spawnAlien() {
@@ -383,6 +378,23 @@ class AlienManager {
             this.game.player.x,
             this.game.player.y
         );
+        
+        // Apply difficulty modifiers if available
+        if (this.game.difficultyManager) {
+            const speedModifier = this.game.difficultyManager.getAlienSpeedModifier();
+            const healthModifier = this.game.difficultyManager.getAlienHealthModifier();
+            
+            // Apply speed modifier
+            alien.speed *= speedModifier;
+            alien.vx *= speedModifier;
+            alien.vy *= speedModifier;
+            
+            // Apply health modifier (only if it would increase health)
+            if (healthModifier > 1) {
+                alien.health *= healthModifier;
+                alien.maxHealth *= healthModifier;
+            }
+        }
         
         // Add a small random variation to the alien's velocity
         // This helps prevent aliens from following the exact same path and overlapping
@@ -489,15 +501,20 @@ class AlienManager {
         this.aliens = [];
         this.explosions = [];
         
-        // Reset spawn timer
+        // Reset available types to just small aliens
+        this.availableTypes = [1];
+        
+        // Reset game start time
+        this.gameStartTime = Date.now();
+        
+        // Reset spawn interval to default
+        this.spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
+        
+        // Clear any existing spawner timeout
         if (this.alienSpawnerTimeout) {
             clearTimeout(this.alienSpawnerTimeout);
             this.alienSpawnerTimeout = null;
         }
-        
-        // Reset game start time and available types
-        this.gameStartTime = Date.now();
-        this.availableTypes = [1]; // Reset to only small aliens
     }
     
     getAliens() {

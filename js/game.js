@@ -156,6 +156,9 @@ class Game {
         // Initialize player data manager for localStorage persistence
         this.playerData = new PlayerData();
         
+        // Initialize difficulty manager
+        this.difficultyManager = new DifficultyManager(this);
+        
         // Set up high frequency player updates
         this.lastPlayerUpdate = 0;
         this.playerUpdateInterval = 1000 / 144; // 144 Hz updates for player rotation
@@ -283,6 +286,7 @@ class Game {
         this.mysteryBoxManager.reset();
         this.cloudManager.reset();
         this.shop.reset();
+        this.difficultyManager.reset();
         
         // Hide all overlays
         document.getElementById('gameOver').style.display = 'none';
@@ -686,6 +690,14 @@ class Game {
             requestAnimationFrame(() => this.gameLoop());
             return;
         }
+        
+        // Calculate delta time for smooth animations
+        const currentTime = performance.now();
+        const deltaTime = currentTime - (this.lastFrameTime || currentTime);
+        this.lastFrameTime = currentTime;
+        
+        // Update difficulty manager
+        this.difficultyManager.update(deltaTime);
         
         // Update all other game entities
         this.updateEntities();

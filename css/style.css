@@ -875,8 +875,32 @@ body {
     padding: 10px;
     color: white;
     z-index: 1000;
-    display: none;
+    display: none; /* Hidden by default */
     background-color: #000000;
+}
+
+/* AI Warning dialogue style */
+.ai-warning {
+    border: 1px solid #ffffff;
+    background-color: rgba(0, 0, 0, 0.9);
+    box-shadow: 0 0 10px #ffffff;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 10px #ffffff; }
+    50% { box-shadow: 0 0 20px #ffffff; }
+    100% { box-shadow: 0 0 10px #ffffff; }
+}
+
+/* Fade out animation for dialogues */
+@keyframes fadeOutDialogue {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.fade-out {
+    animation: fadeOutDialogue 1s ease-out forwards;
 }
 
 #tutorial-content {

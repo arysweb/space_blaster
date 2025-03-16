@@ -200,6 +200,7 @@ class TutorialSystem {
             const dialogueBox = document.createElement('div');
             dialogueBox.id = 'tutorial-dialogue';
             dialogueBox.className = 'tutorial-dialogue';
+            dialogueBox.style.display = 'none'; // Initially hidden
             
             // Create dialogue content
             const dialogueContent = document.createElement('div');
