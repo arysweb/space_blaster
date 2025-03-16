@@ -20,11 +20,11 @@ class DifficultyManager {
         // Difficulty thresholds for introducing new aliens (in seconds)
         this.ALIEN_INTRODUCTION_TIMES = {
             0: ["basicAlien"],
-            120: ["basicAlien", "secondAlienType"],
-            240: ["basicAlien", "secondAlienType", "thirdAlienType"],
-            360: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType"],
-            480: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType"],
-            600: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType", "sixthAlienType"]
+            60: ["basicAlien", "secondAlienType"],
+            150: ["basicAlien", "secondAlienType", "thirdAlienType"],
+            240: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType"],
+            330: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType"],
+            420: ["basicAlien", "secondAlienType", "thirdAlienType", "fourthAlienType", "fifthAlienType", "sixthAlienType"]
         };
         
         // Difficulty increases per minute
@@ -35,14 +35,14 @@ class DifficultyManager {
         // AI messages for difficulty changes - only at key moments
         this.AI_MESSAGES = [
             // New alien type introductions
-            { time: 118, message: "Caution: Detecting new alien signatures approaching." },
-            { time: 238, message: "Warning: More advanced alien species detected." },
-            { time: 358, message: "Alert: Heavy alien reinforcements incoming!" },
+            { time: 58, message: "Detecting new alien signatures approaching." },
+            { time: 148, message: "More advanced alien species detected." },
+            { time: 238, message: "Heavy alien reinforcements incoming!" },
             
             // Major difficulty increases
-            { time: 180, message: "Enemy ships increasing speed and durability." },
-            { time: 300, message: "Warning: Alien attack patterns becoming more aggressive." },
-            { time: 420, message: "Caution: Alien reinforcements arriving at accelerated rate." }
+            { time: 90, message: "Enemy ships increasing speed and durability." },
+            { time: 180, message: "Alien attack patterns becoming more aggressive." },
+            { time: 300, message: "Alien reinforcements arriving at accelerated rate." }
         ];
     }
     
@@ -179,15 +179,15 @@ class DifficultyManager {
         // Make the dialogue visible
         dialogueBox.style.display = 'block';
         
-        // Pause the game for 3 seconds to let player read the message
-        this.game.isPaused = true;
+        // Slow down the game instead of pausing it completely
+        this.game.timeScale = 0.3; // Slow motion effect
         
-        // Resume game after 3 seconds
+        // Resume normal speed after 3 seconds
         setTimeout(() => {
-            this.game.isPaused = false;
+            this.game.timeScale = 1.0;
         }, 3000);
         
-        // Remove dialogue after a few seconds (longer than the pause)
+        // Remove dialogue after a few seconds
         setTimeout(() => {
             dialogueBox.classList.add('fade-out');
             setTimeout(() => dialogueBox.remove(), 1000);

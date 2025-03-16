@@ -883,14 +883,6 @@ body {
 .ai-warning {
     border: 1px solid #ffffff;
     background-color: rgba(0, 0, 0, 0.9);
-    box-shadow: 0 0 10px #ffffff;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 10px #ffffff; }
-    50% { box-shadow: 0 0 20px #ffffff; }
-    100% { box-shadow: 0 0 10px #ffffff; }
 }
 
 /* Fade out animation for dialogues */

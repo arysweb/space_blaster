@@ -144,6 +144,7 @@ class Game {
         this.mouseX = 0;
         this.mouseY = 0;
         this.infoBarVisible = true; // Add infoBarVisible flag
+        this.timeScale = 1.0; // Add timeScale for slow-motion effects
         
         // Initialize managers and UI
         this.ui = new GameUI();
@@ -619,8 +620,7 @@ class Game {
     }
     
     drawEntities() {
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Canvas is already cleared in gameLoop
         
         // Draw clouds (background)
         this.cloudManager.draw(this.ctx, this.assets.getCloudImages());
@@ -666,8 +666,22 @@ class Game {
     }
     
     gameLoop() {
-        // Clear the canvas
+        // Calculate delta time
+        const currentTime = performance.now();
+        let deltaTime = currentTime - (this.lastFrameTime || currentTime);
+        this.lastFrameTime = currentTime;
+        
+        // Apply time scale to deltaTime
+        deltaTime *= this.timeScale;
+        
+        // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Always update and draw background elements
+        if (this.cloudManager) {
+            this.cloudManager.update();
+            this.cloudManager.draw(this.ctx, this.assets.getCloudImages());
+        }
         
         // Always update UI
         this.updateInfoBarVisibility();
@@ -690,11 +704,6 @@ class Game {
             requestAnimationFrame(() => this.gameLoop());
             return;
         }
-        
-        // Calculate delta time for smooth animations
-        const currentTime = performance.now();
-        const deltaTime = currentTime - (this.lastFrameTime || currentTime);
-        this.lastFrameTime = currentTime;
         
         // Update difficulty manager
         this.difficultyManager.update(deltaTime);

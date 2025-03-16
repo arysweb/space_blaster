@@ -66,9 +66,9 @@ const GAME_CONFIG = {
     
     // Mystery box settings
     MYSTERY_BOX: {
-        SPAWN_INTERVAL: 5000, // 5 seconds
-        MIN_SPAWN_INTERVAL: 5000, // 8 seconds
-        MAX_SPAWN_INTERVAL: 15000, // 15 seconds
+        SPAWN_INTERVAL: 15000, // 15 seconds
+        MIN_SPAWN_INTERVAL: 15000, // 15 seconds
+        MAX_SPAWN_INTERVAL: 30000, // 30 seconds
         SIZE: 50,
         POINTS: 0,
         COINS: 5,
