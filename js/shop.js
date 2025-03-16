@@ -92,8 +92,9 @@ class Shop {
             // Use the Game's increaseStatLevel method which will also save player data
             this.game.increaseStatLevel(upgrade.id);
             
-            // Update UI
+            // Update both shop UI and game UI for coins
             this.shopCoins.textContent = this.game.coins;
+            this.game.ui.updateCoins(this.game.coins);
             this.renderUpgrades();
             
             // Save player data after purchase
