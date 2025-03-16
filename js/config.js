@@ -56,6 +56,18 @@ const GAME_CONFIG = {
             COINS: 1,
             HEALTH: 7, // Health points for L4 aliens
             IMAGE: 'img/aliens/alien_L4.png'
+        },
+        OVERLORD: {
+            SIZE: 70, // Larger than other aliens
+            SPEED: 1.0, // Increased from 0.5 to 1.0 for faster movement
+            POINTS: 50, // Higher points as it's a special alien
+            COINS: 3, // More coins as reward
+            HEALTH: 10, // Higher health
+            IMAGE: 'img/aliens/overloard.png', // Using the provided image path
+            SPAWN_INTERVAL: 25000, // Appears every 25 seconds
+            WAVE_AMPLITUDE: 100, // Wave movement amplitude
+            WAVE_FREQUENCY: 0.05, // Increased from 0.02 to 0.05 for faster wave movement
+            MIN_DISTANCE_FROM_PLAYER: 200 // Minimum distance to keep from player
         }
     },
     

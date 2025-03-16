@@ -25,7 +25,8 @@ class AssetLoader {
             1: new Image(),
             2: new Image(),
             3: new Image(),
-            4: new Image()
+            4: new Image(),
+            5: new Image() // Overlord alien (type 5)
         };
         this.alienImages[0].src = GAME_CONFIG.ENEMY.LARGE.IMAGE;
         this.alienImages[0].onerror = () => console.warn('Failed to load large alien image');
@@ -41,6 +42,9 @@ class AssetLoader {
         
         this.alienImages[4].src = GAME_CONFIG.ENEMY.SLUG.IMAGE;
         this.alienImages[4].onerror = () => console.warn('Failed to load slug alien image');
+        
+        this.alienImages[5].src = GAME_CONFIG.ENEMY.OVERLORD.IMAGE;
+        this.alienImages[5].onerror = () => console.warn('Failed to load overlord alien image');
         
         // Coin image
         this.coinImage = new Image();

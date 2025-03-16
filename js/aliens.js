@@ -10,6 +10,12 @@ class Alien {
         this.rotation = 0;
         this.lastUpdateTime = Date.now();
         
+        // Special properties for Overlord alien
+        this.waveTime = 0;
+        this.initialX = x;
+        this.initialY = y;
+        this.isOverlord = type === 5; // Type 5 is the Overlord
+        
         // Set properties based on alien type
         if (type === 0) { // Large alien
             this.size = GAME_CONFIG.ENEMY.LARGE.SIZE;
@@ -46,6 +52,16 @@ class Alien {
             this.coins = GAME_CONFIG.ENEMY.SLUG.COINS;
             this.health = GAME_CONFIG.ENEMY.SLUG.HEALTH;
             this.maxHealth = GAME_CONFIG.ENEMY.SLUG.HEALTH;
+        } else if (type === 5) { // Overlord alien
+            this.size = GAME_CONFIG.ENEMY.OVERLORD.SIZE;
+            this.speed = GAME_CONFIG.ENEMY.OVERLORD.SPEED;
+            this.points = GAME_CONFIG.ENEMY.OVERLORD.POINTS;
+            this.coins = GAME_CONFIG.ENEMY.OVERLORD.COINS;
+            this.health = GAME_CONFIG.ENEMY.OVERLORD.HEALTH;
+            this.maxHealth = GAME_CONFIG.ENEMY.OVERLORD.HEALTH;
+            this.waveAmplitude = GAME_CONFIG.ENEMY.OVERLORD.WAVE_AMPLITUDE;
+            this.waveFrequency = GAME_CONFIG.ENEMY.OVERLORD.WAVE_FREQUENCY;
+            this.minDistanceFromPlayer = GAME_CONFIG.ENEMY.OVERLORD.MIN_DISTANCE_FROM_PLAYER;
         }
         
         // Calculate direction towards player instead of center of screen
@@ -80,6 +96,12 @@ class Alien {
         const deltaTime = now - this.lastUpdateTime;
         this.lastUpdateTime = now;
         
+        // Special movement for Overlord alien
+        if (this.isOverlord) {
+            this.updateOverlordMovement(playerX, playerY, deltaTime);
+            return;
+        }
+        
         // If player position is provided, update direction towards player
         if (playerX !== undefined && playerY !== undefined) {
             // Calculate direction towards player
@@ -112,6 +134,70 @@ class Alien {
         if (allAliens) {
             this.avoidCollisions(allAliens);
         }
+    }
+    
+    updateOverlordMovement(playerX, playerY, deltaTime) {
+        // Increment wave time
+        this.waveTime += deltaTime * 0.001; // Convert to seconds
+        
+        // Calculate distance to player
+        const dx = playerX - this.x;
+        const dy = playerY - this.y;
+        const distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
+        
+        // Calculate a target position that keeps minimum distance from player
+        let targetX = playerX;
+        let targetY = playerY;
+        
+        if (distanceToPlayer < this.minDistanceFromPlayer) {
+            // Move away from player to maintain minimum distance
+            const angle = Math.atan2(dy, dx);
+            targetX = playerX - Math.cos(angle) * this.minDistanceFromPlayer;
+            targetY = playerY - Math.sin(angle) * this.minDistanceFromPlayer;
+        } else {
+            // Move in a wave pattern around the screen
+            // Calculate base movement direction
+            const screenCenterX = this.canvasWidth / 2;
+            const screenCenterY = this.canvasHeight / 2;
+            
+            // Create a slow-moving wave pattern
+            targetX = screenCenterX + Math.cos(this.waveTime) * (this.canvasWidth * 0.4);
+            targetY = screenCenterY + Math.sin(this.waveTime * 1.5) * (this.canvasHeight * 0.4);
+        }
+        
+        // Calculate direction to target
+        const dxTarget = targetX - this.x;
+        const dyTarget = targetY - this.y;
+        const distanceToTarget = Math.sqrt(dxTarget * dxTarget + dyTarget * dyTarget);
+        
+        if (distanceToTarget > 0) {
+            // Gradually adjust velocity towards target (smoother movement)
+            const adjustmentFactor = 0.02; // Lower = smoother/slower adjustment
+            
+            // Calculate target velocity
+            const targetVx = (dxTarget / distanceToTarget) * this.speed;
+            const targetVy = (dyTarget / distanceToTarget) * this.speed;
+            
+            // Gradually adjust current velocity towards target
+            this.vx += (targetVx - this.vx) * adjustmentFactor;
+            this.vy += (targetVy - this.vy) * adjustmentFactor;
+            
+            // Add wave motion perpendicular to movement direction
+            const perpX = -this.vy;
+            const perpY = this.vx;
+            const waveOffset = Math.sin(this.waveTime * this.waveFrequency * 2 * Math.PI) * this.waveAmplitude;
+            
+            // Apply wave motion
+            this.vx += perpX * waveOffset * 0.0001;
+            this.vy += perpY * waveOffset * 0.0001;
+            
+            // Update rotation to face movement direction
+            this.rotation = Math.atan2(this.vy, this.vx);
+        }
+        
+        // Move alien
+        this.x += this.vx * (deltaTime / 16); // Normalize to ~60fps
+        this.y += this.vy * (deltaTime / 16);
     }
     
     avoidCollisions(allAliens) {
@@ -156,7 +242,7 @@ class Alien {
             );
         } else {
             // Fallback: Draw a simple shape if image is not available
-            ctx.fillStyle = this.type === 0 ? '#ff0000' : this.type === 1 ? '#ff5555' : this.type === 2 ? '#ff00ff' : this.type === 3 ? '#00ffff' : '#ff00ff';
+            ctx.fillStyle = this.type === 0 ? '#ff0000' : this.type === 1 ? '#ff5555' : this.type === 2 ? '#ff00ff' : this.type === 3 ? '#00ffff' : this.type === 4 ? '#ff00ff' : '#ffff00';
             
             // Draw alien shape
             ctx.beginPath();
@@ -222,54 +308,58 @@ class AlienExplosion {
     }
     
     update() {
-        const elapsedTime = Date.now() - this.creationTime;
-        const progress = Math.min(1, elapsedTime / this.lifespan);
+        const elapsed = Date.now() - this.creationTime;
+        const progress = Math.min(elapsed / this.lifespan, 1);
         
-        // First 20% of time: fade in and grow
+        // Fade in quickly, then fade out
         if (progress < 0.2) {
-            // Reduce max opacity to 0.5 (50%)
-            this.opacity = (progress / 0.2) * 0.5; 
-            this.scale = 0.5 + (progress / 0.2) * 0.5; // Scale from 0.5 to 1.0
-        } 
-        // Middle 40%: stay fully visible
-        else if (progress < 0.6) {
-            this.opacity = 0.5; // 50% opacity
-            this.scale = this.maxScale;
-        }
-        // Remaining 40%: fade out and grow slightly
-        else {
+            // Fade in phase
+            this.opacity = progress / 0.2;
+            this.scale = 0.5 + (this.maxScale - 0.5) * (progress / 0.2);
+        } else {
+            // Fade out phase
             this.fadeInComplete = true;
-            // Map remaining progress (0.6-1.0) to opacity (0.5-0)
-            this.opacity = 0.5 - ((progress - 0.6) / 0.4) * 0.5;
-            // Slightly increase scale for "dissipation" effect
-            this.scale = this.maxScale + ((progress - 0.6) / 0.4) * 0.2;
+            this.opacity = 1 - ((progress - 0.2) / 0.8);
+            this.scale = this.maxScale;
         }
     }
     
     draw(ctx, image) {
-        if (!image || !image.complete || image.naturalWidth === 0) return;
-        
-        // Draw explosion
         ctx.save();
         ctx.globalAlpha = this.opacity;
         
-        // Calculate size with scale
-        const currentSize = this.size * this.scale;
+        const drawSize = this.size * this.scale;
         
-        // Draw centered explosion image
-        ctx.drawImage(
-            image,
-            this.x - currentSize / 2,
-            this.y - currentSize / 2,
-            currentSize,
-            currentSize
-        );
+        // Check if image is loaded and not broken
+        if (image && image.complete && image.naturalWidth > 0) {
+            ctx.drawImage(
+                image,
+                this.x - drawSize / 2,
+                this.y - drawSize / 2,
+                drawSize,
+                drawSize
+            );
+        } else {
+            // Fallback: Draw a simple explosion if image is not available
+            const gradient = ctx.createRadialGradient(
+                this.x, this.y, 0,
+                this.x, this.y, drawSize / 2
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.5, 'rgba(255, 200, 50, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 50, 0, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, drawSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
         
         ctx.restore();
     }
     
     isFinished() {
-        return this.fadeInComplete && this.opacity <= 0.05; // Remove when almost invisible
+        return Date.now() - this.creationTime >= this.lifespan;
     }
 }
 
@@ -284,126 +374,118 @@ class AlienManager {
         this.isPaused = false; // Add isPaused flag
         this.spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
         this.spawnCounter = 0; // Initialize spawn counter
+        
+        // Overlord alien specific properties
+        this.lastOverlordSpawnTime = 0;
+        this.overlordSpawnInterval = 25000; // 25 seconds
     }
     
     updateAvailableTypes() {
-        // Use the difficulty manager to determine available alien types
-        if (this.game.difficultyManager) {
-            const availableTypes = this.game.difficultyManager.getAvailableAlienTypes();
-            if (availableTypes && availableTypes.length > 0) {
-                // Make sure we're updating the available types, not just replacing them
-                this.availableTypes = [...availableTypes];
-                
-                // Log available types for debugging
-                console.log("Available alien types:", this.availableTypes);
-            }
+        const elapsedMinutes = (Date.now() - this.gameStartTime) / 60000;
+        
+        // Gradually introduce more alien types as time progresses
+        if (elapsedMinutes >= 1 && !this.availableTypes.includes(0)) {
+            // After 1 minute, add large aliens (type 0)
+            this.availableTypes.push(0);
+            console.log('Large aliens now available');
+        }
+        
+        if (elapsedMinutes >= 2 && !this.availableTypes.includes(2)) {
+            // After 2 minutes, add L3 aliens (type 2)
+            this.availableTypes.push(2);
+            console.log('L3 aliens now available');
+        }
+        
+        if (elapsedMinutes >= 3 && !this.availableTypes.includes(3)) {
+            // After 3 minutes, add L4 aliens (type 3)
+            this.availableTypes.push(3);
+            console.log('L4 aliens now available');
         }
     }
     
     getCurrentAlienType() {
-        if (this.game.gameOver || this.game.isPaused) return 1; // small alien
-        
         // Update available types first
         this.updateAvailableTypes();
         
-        // For controlling slug spawn rate
-        if (this.availableTypes.includes(4)) { // If slug is available
-            // Use a counter to control spawn ratio (1 slug for every 3 small aliens)
-            if (!this.spawnCounter) {
-                this.spawnCounter = 0;
-            }
-            
-            this.spawnCounter++;
-            
-            // Every 4th spawn should be a slug (1:3 ratio)
-            if (this.spawnCounter % 4 === 0) {
-                return 4; // Return slug type
-            }
-            
-            // For other spawns, exclude slug from random selection
-            const filteredTypes = this.availableTypes.filter(type => type !== 4);
-            const randomIndex = Math.floor(Math.random() * filteredTypes.length);
-            return filteredTypes[randomIndex];
-        }
-        
-        // If no slug in available types or for other cases, use standard random selection
+        // Randomly select from available types
         const randomIndex = Math.floor(Math.random() * this.availableTypes.length);
         return this.availableTypes[randomIndex];
     }
     
     startAlienSpawner() {
-        // Clear any existing timeout to prevent multiple spawners
+        // Clear any existing timeout
         if (this.alienSpawnerTimeout) {
             clearTimeout(this.alienSpawnerTimeout);
-            this.alienSpawnerTimeout = null;
         }
         
-        // Don't spawn if game is over or paused
-        if (this.game.gameOver || this.isPaused) {
-            console.log('Alien spawner not started - game is over or paused');
+        // Schedule next alien spawn
+        this.alienSpawnerTimeout = setTimeout(() => {
+            // Spawn alien if game is not paused
+            if (!this.isPaused && !this.game.gameOver) {
+                this.spawnAlien();
+            }
+            
+            // Continue spawning
+            this.startAlienSpawner();
+        }, this.spawnInterval);
+        
+        // Check if it's time to spawn an Overlord alien
+        this.checkOverlordSpawn();
+    }
+    
+    checkOverlordSpawn() {
+        const now = Date.now();
+        
+        // Check if enough time has passed since the last Overlord spawn
+        if (now - this.lastOverlordSpawnTime >= this.overlordSpawnInterval) {
+            // Spawn an Overlord alien
+            this.spawnOverlordAlien();
+            
+            // Update the last spawn time
+            this.lastOverlordSpawnTime = now;
+        }
+    }
+    
+    spawnOverlordAlien() {
+        // Don't spawn if game is paused or over
+        if (this.isPaused || this.game.gameOver) {
             return;
         }
         
-        // Spawn an alien
-        this.spawnAlien();
+        // Get a random spawn position
+        const spawnPos = this.getRandomSpawnPosition();
         
-        // Get spawn interval from difficulty manager if available
-        if (this.game.difficultyManager) {
-            this.spawnInterval = this.game.difficultyManager.getAlienSpawnInterval();
-        }
+        // Create a new Overlord alien (type 5)
+        const overlord = new Alien(
+            spawnPos.x,
+            spawnPos.y,
+            5, // Overlord type
+            this.game.canvas.width,
+            this.game.canvas.height,
+            this.game.player.x,
+            this.game.player.y
+        );
         
-        // Schedule next spawn
-        this.alienSpawnerTimeout = setTimeout(() => {
-            // Only continue spawning if the game is not over and not paused
-            if (!this.game.gameOver && !this.isPaused) {
-                this.startAlienSpawner();
-            } else {
-                // If game is over or paused, we'll stop the spawner
-                console.log('Alien spawner stopped - game is over or paused');
-                if (this.alienSpawnerTimeout) {
-                    clearTimeout(this.alienSpawnerTimeout);
-                    this.alienSpawnerTimeout = null;
-                }
-            }
-        }, this.spawnInterval);
+        // Add to aliens array
+        this.aliens.push(overlord);
+        
+        console.log('Overlord alien spawned!');
     }
     
     spawnAlien() {
-        // Don't spawn if game is over or paused
-        if (this.game.gameOver || this.game.isPaused) {
-            return;
-        }
+        // Increment spawn counter
+        this.spawnCounter++;
         
-        // Choose a random alien type from available types
+        // Get a random spawn position
+        const spawnPos = this.getRandomSpawnPosition();
+        
+        // Get current alien type based on game progression
         const alienType = this.getCurrentAlienType();
         
-        // Choose a random spawn position along the edges
-        let x, y;
-        const spawnEdge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
-        
-        switch(spawnEdge) {
-            case 0: // Top edge
-                x = Math.random() * this.game.canvas.width;
-                y = -50;
-                break;
-            case 1: // Right edge
-                x = this.game.canvas.width + 50;
-                y = Math.random() * this.game.canvas.height;
-                break;
-            case 2: // Bottom edge
-                x = Math.random() * this.game.canvas.width;
-                y = this.game.canvas.height + 50;
-                break;
-            case 3: // Left edge
-                x = -50;
-                y = Math.random() * this.game.canvas.height;
-                break;
-        }
-        
-        // Create and add the alien
+        // Create a new alien
         const alien = new Alien(
-            x,
-            y,
+            spawnPos.x,
+            spawnPos.y,
             alienType,
             this.game.canvas.width,
             this.game.canvas.height,
@@ -411,56 +493,43 @@ class AlienManager {
             this.game.player.y
         );
         
-        // Apply difficulty modifiers if available
-        if (this.game.difficultyManager) {
-            const speedModifier = this.game.difficultyManager.getAlienSpeedModifier();
-            const healthModifier = this.game.difficultyManager.getAlienHealthModifier();
-            
-            // Apply speed modifier
-            alien.speed *= speedModifier;
-            alien.vx *= speedModifier;
-            alien.vy *= speedModifier;
-            
-            // Apply health modifier (only if it would increase health)
-            if (healthModifier > 1) {
-                alien.health *= healthModifier;
-                alien.maxHealth *= healthModifier;
-            }
-        }
-        
-        // Add a small random variation to the alien's velocity
-        // This helps prevent aliens from following the exact same path and overlapping
-        const variationFactor = 0.15; // 15% maximum variation
-        alien.vx *= (1 + (Math.random() * 2 - 1) * variationFactor);
-        alien.vy *= (1 + (Math.random() * 2 - 1) * variationFactor);
-        
+        // Add to aliens array
         this.aliens.push(alien);
     }
     
     updateAliens() {
-        // Update aliens with the game's pause state
+        // Check if it's time to spawn an Overlord alien
+        this.checkOverlordSpawn();
+        
+        // Update all aliens
         for (let i = this.aliens.length - 1; i >= 0; i--) {
-            this.aliens[i].update(this.aliens, this.game.player.x, this.game.player.y, this.game.isPaused);
+            const alien = this.aliens[i];
             
-            // Only remove off-screen aliens if the game is not paused
-            if (!this.game.isPaused && this.aliens[i].isOffScreen()) {
+            // Update alien position
+            alien.update(this.aliens, this.game.player.x, this.game.player.y, this.isPaused);
+            
+            // Remove aliens that are off-screen
+            if (alien.isOffScreen()) {
                 this.aliens.splice(i, 1);
             }
         }
         
-        // Update explosions
+        // Update all explosions
         for (let i = this.explosions.length - 1; i >= 0; i--) {
-            this.explosions[i].update();
+            const explosion = this.explosions[i];
             
-            // Remove explosions that are finished
-            if (this.explosions[i].isFinished()) {
+            // Update explosion
+            explosion.update();
+            
+            // Remove finished explosions
+            if (explosion.isFinished()) {
                 this.explosions.splice(i, 1);
             }
         }
     }
     
     resetAlienVelocities() {
-        // Reset all alien velocities to 0 when game is paused
+        // Reset all alien velocities to 0
         for (const alien of this.aliens) {
             alien.vx = 0;
             alien.vy = 0;
@@ -468,63 +537,74 @@ class AlienManager {
     }
     
     getRandomSpawnPosition() {
-        // Determine spawn position (outside the screen)
-        const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
-        let x, y;
-        let attempts = 0;
-        const maxAttempts = 10; // Maximum number of attempts to find a non-overlapping position
+        const canvas = this.game.canvas;
+        const buffer = 50; // Spawn buffer from edge
         
-        do {
-            switch (side) {
-                case 0: // top
-                    x = Math.random() * this.game.canvas.width;
-                    y = -50;
+        // Determine spawn edge (0: top, 1: right, 2: bottom, 3: left)
+        const edge = Math.floor(Math.random() * 4);
+        
+        let x, y;
+        
+        switch (edge) {
+            case 0: // Top edge
+                x = Math.random() * canvas.width;
+                y = -buffer;
+                break;
+            case 1: // Right edge
+                x = canvas.width + buffer;
+                y = Math.random() * canvas.height;
+                break;
+            case 2: // Bottom edge
+                x = Math.random() * canvas.width;
+                y = canvas.height + buffer;
+                break;
+            case 3: // Left edge
+                x = -buffer;
+                y = Math.random() * canvas.height;
+                break;
+        }
+        
+        // Ensure position is clear of other aliens
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        while (!this.isPositionClear(x, y) && attempts < maxAttempts) {
+            // Try a different position
+            switch (edge) {
+                case 0: // Top edge
+                    x = Math.random() * canvas.width;
                     break;
-                case 1: // right
-                    x = this.game.canvas.width + 50;
-                    y = Math.random() * this.game.canvas.height;
+                case 1: // Right edge
+                    y = Math.random() * canvas.height;
                     break;
-                case 2: // bottom
-                    x = Math.random() * this.game.canvas.width;
-                    y = this.game.canvas.height + 50;
+                case 2: // Bottom edge
+                    x = Math.random() * canvas.width;
                     break;
-                case 3: // left
-                    x = -50;
-                    y = Math.random() * this.game.canvas.height;
+                case 3: // Left edge
+                    y = Math.random() * canvas.height;
                     break;
-            }
-            
-            // Check if this position would overlap with any existing aliens
-            if (this.isPositionClear(x, y)) {
-                return { x, y };
             }
             
             attempts++;
-        } while (attempts < maxAttempts);
+        }
         
-        // If we couldn't find a clear position after maxAttempts, return the last position
-        // This is a fallback to prevent infinite loops
         return { x, y };
     }
     
     isPositionClear(x, y) {
-        // Determine the minimum safe distance between aliens
-        // This should be based on the largest alien size plus some buffer
-        const safeDistance = GAME_CONFIG.ENEMY.LARGE.SIZE * 1.2; // 20% buffer
+        // Check if position is clear of other aliens
+        const minDistance = 50; // Minimum distance between aliens
         
-        // Check distance to all existing aliens
         for (const alien of this.aliens) {
-            const dx = x - alien.x;
-            const dy = y - alien.y;
+            const dx = alien.x - x;
+            const dy = alien.y - y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // If too close to an existing alien, position is not clear
-            if (distance < safeDistance) {
+            if (distance < minDistance) {
                 return false;
             }
         }
         
-        // No overlaps found, position is clear
         return true;
     }
     
@@ -533,19 +613,19 @@ class AlienManager {
         this.aliens = [];
         this.explosions = [];
         
-        // Reset available types to just small aliens and slug aliens
-        this.availableTypes = [1, 4];
+        // Reset spawn counter
+        this.spawnCounter = 0;
+        
+        // Reset available types
+        this.availableTypes = [1, 4]; // Start with small aliens (type 1) and slug aliens (type 4)
         
         // Reset game start time
         this.gameStartTime = Date.now();
         
-        // Reset spawn interval to default
-        this.spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
+        // Reset Overlord spawn time
+        this.lastOverlordSpawnTime = 0;
         
-        // Reset spawn counter
-        this.spawnCounter = 0;
-        
-        // Clear any existing spawner timeout
+        // Clear any existing timeout
         if (this.alienSpawnerTimeout) {
             clearTimeout(this.alienSpawnerTimeout);
             this.alienSpawnerTimeout = null;
@@ -557,13 +637,12 @@ class AlienManager {
     }
     
     addExplosion(x, y, size) {
-        const explosion = new AlienExplosion(x, y, size);
-        this.explosions.push(explosion);
+        this.explosions.push(new AlienExplosion(x, y, size));
     }
     
     drawExplosions(ctx) {
-        for (let i = this.explosions.length - 1; i >= 0; i--) {
-            const explosion = this.explosions[i];
+        // Draw all explosions
+        for (const explosion of this.explosions) {
             explosion.draw(ctx, this.game.assets.getExplosionImage());
         }
     }
@@ -571,17 +650,23 @@ class AlienManager {
 
 class AlienCollisionDetector {
     static checkBulletAlienCollision(bullet, alien) {
+        // Calculate distance between centers
         const dx = bullet.x - alien.x;
         const dy = bullet.y - alien.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < alien.size / 2 + bullet.size / 2;
+        
+        // Check if distance is less than sum of radii
+        return distance < (bullet.size / 2 + alien.size / 2);
     }
     
     static checkPlayerAlienCollision(player, alien) {
+        // Calculate distance between centers
         const dx = player.x - alien.x;
         const dy = player.y - alien.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < alien.size / 2 + player.size / 2;
+        
+        // Check if distance is less than sum of radii
+        return distance < (player.size / 2 + alien.size / 2);
     }
 }
 
