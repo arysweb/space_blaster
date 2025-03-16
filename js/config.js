@@ -35,7 +35,7 @@ const GAME_CONFIG = {
         },
         SLUG: {
             SIZE: 30, // Smaller than other aliens
-            SPEED: 1.1, // Faster than other aliens
+            SPEED: 1.2, // Faster than other aliens
             POINTS: 5, // Lower points as it's weaker
             COINS: 1,
             HEALTH: 0.5, // Reduced health so they die with one shot
@@ -59,15 +59,15 @@ const GAME_CONFIG = {
         },
         OVERLORD: {
             SIZE: 70, // Larger than other aliens
-            SPEED: 1.0, // Increased from 0.5 to 1.0 for faster movement
+            SPEED: 1.5, // Increased from 0.5 to 1.0 for faster movement
             POINTS: 50, // Higher points as it's a special alien
-            COINS: 3, // More coins as reward
-            HEALTH: 10, // Higher health
+            COINS: 1, // More coins as reward
+            HEALTH: 30, // Higher health
             IMAGE: 'img/aliens/overloard.png', // Using the provided image path
             SPAWN_INTERVAL: 25000, // Appears every 25 seconds
             WAVE_AMPLITUDE: 100, // Wave movement amplitude
-            WAVE_FREQUENCY: 0.05, // Increased from 0.02 to 0.05 for faster wave movement
-            MIN_DISTANCE_FROM_PLAYER: 200 // Minimum distance to keep from player
+            WAVE_FREQUENCY: 0.15, // Increased from 0.02 to 0.05 for faster wave movement
+            MIN_DISTANCE_FROM_PLAYER: 300 // Minimum distance to keep from player
         }
     },
     

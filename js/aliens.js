@@ -370,14 +370,16 @@ class AlienManager {
         this.explosions = [];
         this.alienSpawnerTimeout = null;
         this.gameStartTime = Date.now();
-        this.availableTypes = [1, 4]; // Start with small aliens (type 1) and slug aliens (type 4)
+        this.availableTypes = [1]; // Start with only small aliens (type 1)
         this.isPaused = false; // Add isPaused flag
         this.spawnInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
         this.spawnCounter = 0; // Initialize spawn counter
+        this.smallAlienCount = 0; // Track small aliens spawned for slug spawning pattern
         
         // Overlord alien specific properties
-        this.lastOverlordSpawnTime = 0;
-        this.overlordSpawnInterval = 25000; // 25 seconds
+        this.lastOverlordSpawnTime = Date.now() + 25000; // Initialize with current time plus 25 seconds to create initial delay
+        this.overlordSpawnInterval = GAME_CONFIG.ENEMY.OVERLORD.SPAWN_INTERVAL;
+        this.hasActiveOverlord = false; // Track if an Overlord is currently active
     }
     
     updateAvailableTypes() {
@@ -404,12 +406,26 @@ class AlienManager {
     }
     
     getCurrentAlienType() {
+        // Check if we need to spawn a slug alien (type 4)
+        // Spawn a slug after every 3 small aliens
+        if (this.smallAlienCount >= 3) {
+            this.smallAlienCount = 0; // Reset counter
+            return 4; // Return slug alien type
+        }
+        
         // Update available types first
         this.updateAvailableTypes();
         
-        // Randomly select from available types
+        // Randomly select from available types (excluding slug aliens)
         const randomIndex = Math.floor(Math.random() * this.availableTypes.length);
-        return this.availableTypes[randomIndex];
+        const selectedType = this.availableTypes[randomIndex];
+        
+        // If we're spawning a small alien (type 1), increment the counter
+        if (selectedType === 1) {
+            this.smallAlienCount++;
+        }
+        
+        return selectedType;
     }
     
     startAlienSpawner() {
@@ -437,7 +453,8 @@ class AlienManager {
         const now = Date.now();
         
         // Check if enough time has passed since the last Overlord spawn
-        if (now - this.lastOverlordSpawnTime >= this.overlordSpawnInterval) {
+        // AND there's no active Overlord
+        if (now - this.lastOverlordSpawnTime >= this.overlordSpawnInterval && !this.hasActiveOverlord) {
             // Spawn an Overlord alien
             this.spawnOverlordAlien();
             
@@ -446,9 +463,28 @@ class AlienManager {
         }
     }
     
+    // Check if there's an active Overlord in the game
+    updateOverlordStatus() {
+        // Reset the status first
+        this.hasActiveOverlord = false;
+        
+        // Check if any alien is an Overlord
+        for (const alien of this.aliens) {
+            if (alien.isOverlord) {
+                this.hasActiveOverlord = true;
+                break;
+            }
+        }
+    }
+    
     spawnOverlordAlien() {
         // Don't spawn if game is paused or over
         if (this.isPaused || this.game.gameOver) {
+            return;
+        }
+        
+        // Don't spawn if there's already an Overlord
+        if (this.hasActiveOverlord) {
             return;
         }
         
@@ -468,6 +504,9 @@ class AlienManager {
         
         // Add to aliens array
         this.aliens.push(overlord);
+        
+        // Mark that we now have an active Overlord
+        this.hasActiveOverlord = true;
         
         console.log('Overlord alien spawned!');
     }
@@ -498,6 +537,9 @@ class AlienManager {
     }
     
     updateAliens() {
+        // Update the Overlord status to check if one exists
+        this.updateOverlordStatus();
+        
         // Check if it's time to spawn an Overlord alien
         this.checkOverlordSpawn();
         
@@ -510,6 +552,10 @@ class AlienManager {
             
             // Remove aliens that are off-screen
             if (alien.isOffScreen()) {
+                // If this was an Overlord, update the status
+                if (alien.isOverlord) {
+                    this.hasActiveOverlord = false;
+                }
                 this.aliens.splice(i, 1);
             }
         }
@@ -615,15 +661,19 @@ class AlienManager {
         
         // Reset spawn counter
         this.spawnCounter = 0;
+        this.smallAlienCount = 0; // Reset small alien counter
         
         // Reset available types
-        this.availableTypes = [1, 4]; // Start with small aliens (type 1) and slug aliens (type 4)
+        this.availableTypes = [1]; // Start with only small aliens (type 1)
         
         // Reset game start time
         this.gameStartTime = Date.now();
         
-        // Reset Overlord spawn time
-        this.lastOverlordSpawnTime = 0;
+        // Reset Overlord spawn time - set to current time plus 25 seconds to create initial delay
+        this.lastOverlordSpawnTime = Date.now() + 25000;
+        
+        // Reset Overlord status
+        this.hasActiveOverlord = false;
         
         // Clear any existing timeout
         if (this.alienSpawnerTimeout) {
