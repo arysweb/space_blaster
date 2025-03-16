@@ -932,6 +932,29 @@ class TutorialSystem {
                 if (this.finalDialogue[stepIndex].action) {
                     this.executeAction(this.finalDialogue[stepIndex].action);
                 }
+                
+                // Hide the continue button for the last step
+                if (stepIndex === this.finalDialogue.length - 1) {
+                    if (this.nextButton) {
+                        this.nextButton.style.display = 'none';
+                    }
+                    
+                    // Auto-hide the dialogue after 5 seconds for the last step
+                    setTimeout(() => {
+                        if (this.dialogueBox) {
+                            this.dialogueBox.style.display = 'none';
+                        }
+                        this.showingFinalDialogue = false;
+                        
+                        // Complete the tutorial and start the game with mystery boxes
+                        this.completeWithMysteryBoxes();
+                    }, 5000);
+                } else {
+                    // Make sure the continue button is visible for non-final steps
+                    if (this.nextButton) {
+                        this.nextButton.style.display = 'block';
+                    }
+                }
             }
         } catch (error) {
             console.error('Error showing final dialogue step:', error);
