@@ -502,6 +502,28 @@ class AlienManager {
             this.game.player.y
         );
         
+        // Apply difficulty multipliers to Overlord's speed and health
+        if (this.game.difficultyManager) {
+            // Apply speed modifier
+            const speedModifier = this.game.difficultyManager.getAlienSpeedModifier();
+            overlord.speed *= speedModifier;
+            
+            // Apply health modifier
+            const healthModifier = this.game.difficultyManager.getAlienHealthModifier();
+            overlord.health *= healthModifier;
+            overlord.maxHealth *= healthModifier;
+            
+            // Update velocity based on the new speed
+            const dx = this.game.player.x - overlord.x;
+            const dy = this.game.player.y - overlord.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                overlord.vx = (dx / distance) * overlord.speed;
+                overlord.vy = (dy / distance) * overlord.speed;
+            }
+        }
+        
         // Add to aliens array
         this.aliens.push(overlord);
         
@@ -531,6 +553,28 @@ class AlienManager {
             this.game.player.x,
             this.game.player.y
         );
+        
+        // Apply difficulty multipliers to alien speed and health
+        if (this.game.difficultyManager) {
+            // Apply speed modifier
+            const speedModifier = this.game.difficultyManager.getAlienSpeedModifier();
+            alien.speed *= speedModifier;
+            
+            // Apply health modifier
+            const healthModifier = this.game.difficultyManager.getAlienHealthModifier();
+            alien.health *= healthModifier;
+            alien.maxHealth *= healthModifier;
+            
+            // Update velocity based on the new speed
+            const dx = this.game.player.x - alien.x;
+            const dy = this.game.player.y - alien.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                alien.vx = (dx / distance) * alien.speed;
+                alien.vy = (dy / distance) * alien.speed;
+            }
+        }
         
         // Add to aliens array
         this.aliens.push(alien);

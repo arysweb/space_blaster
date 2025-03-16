@@ -28,9 +28,9 @@ class DifficultyManager {
         };
         
         // Difficulty increases per minute
-        this.SPEED_INCREASE_PER_MINUTE = 0.08;
+        this.SPEED_INCREASE_PER_MINUTE = 0.15;
         this.HEALTH_INCREASE_PER_MINUTE = 0.15;
-        this.SPAWN_RATE_INCREASE_PER_MINUTE = 0.12;
+        this.SPAWN_RATE_INCREASE_PER_MINUTE = 0.25;
         
         // AI messages for difficulty changes - only at key moments
         this.AI_MESSAGES = [
@@ -130,7 +130,7 @@ class DifficultyManager {
         const baseInterval = GAME_CONFIG.ENEMY.SPAWN_INTERVAL;
         
         // Apply spawn rate multiplier (inverted since lower interval = faster spawning)
-        return Math.max(300, baseInterval / this.alienSpawnRateMultiplier);
+        return Math.max(200, baseInterval / this.alienSpawnRateMultiplier);
     }
     
     /**

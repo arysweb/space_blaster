@@ -16,10 +16,10 @@ const GAME_CONFIG = {
     
     // Enemy settings
     ENEMY: {
-        SPAWN_INTERVAL: 1000, // 1 second (was 2 seconds)
+        SPAWN_INTERVAL: 700, // Reduced from 1000ms to 700ms for faster spawning
         LARGE: {
             SIZE: 50,
-            SPEED: 0.7,
+            SPEED: 0.9, // Increased from 0.7 to 1.0
             POINTS: 15,
             COINS: 1,
             HEALTH: 4, // Health points for large aliens
@@ -27,7 +27,7 @@ const GAME_CONFIG = {
         },
         SMALL: {
             SIZE: 50,
-            SPEED: 0.9, // Reduced from 1.2 to 0.8
+            SPEED: 1, // Increased from 0.9 to 1.2
             POINTS: 10,
             COINS: 1,
             HEALTH: 1.5, // Health points for small aliens
@@ -35,7 +35,7 @@ const GAME_CONFIG = {
         },
         SLUG: {
             SIZE: 30, // Smaller than other aliens
-            SPEED: 1.2, // Faster than other aliens
+            SPEED: 1.2, // Increased from 1.2 to 1.5
             POINTS: 5, // Lower points as it's weaker
             COINS: 1,
             HEALTH: 0.5, // Reduced health so they die with one shot
@@ -43,7 +43,7 @@ const GAME_CONFIG = {
         },
         L3: {
             SIZE: 50,
-            SPEED: 0.9,
+            SPEED: 1, // Increased from 0.9 to 1.2
             POINTS: 20,
             COINS: 1,
             HEALTH: 5, // Health points for L3 aliens
@@ -51,7 +51,7 @@ const GAME_CONFIG = {
         },
         L4: {
             SIZE: 50,
-            SPEED: 0.7,
+            SPEED: 1, // Increased from 0.7 to 1.0
             POINTS: 25,
             COINS: 1,
             HEALTH: 7, // Health points for L4 aliens
@@ -59,14 +59,14 @@ const GAME_CONFIG = {
         },
         OVERLORD: {
             SIZE: 70, // Larger than other aliens
-            SPEED: 1.5, // Increased from 0.5 to 1.0 for faster movement
+            SPEED: 1.9, // Increased from 1.5 to 1.8
             POINTS: 50, // Higher points as it's a special alien
             COINS: 1, // More coins as reward
             HEALTH: 30, // Higher health
             IMAGE: 'img/aliens/overloard.png', // Using the provided image path
-            SPAWN_INTERVAL: 25000, // Appears every 25 seconds
+            SPAWN_INTERVAL: 20000, // Reduced from 25000 to 20000 for more frequent appearances
             WAVE_AMPLITUDE: 100, // Wave movement amplitude
-            WAVE_FREQUENCY: 0.15, // Increased from 0.02 to 0.05 for faster wave movement
+            WAVE_FREQUENCY: 0.2, // Increased from 0.15 to 0.2 for faster wave movement
             MIN_DISTANCE_FROM_PLAYER: 300 // Minimum distance to keep from player
         }
     },
